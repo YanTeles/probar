@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tabacaria Premium – Coronel Fabriciano</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+
+<!-- ═══════════════════════════════════════
+     AGE GATE
+════════════════════════════════════════ -->
+<div id="age-gate">
+  <div class="age-gate-inner">
+    <div class="age-gate-logo">Tabacaria</div>
+    <div class="age-gate-sub">Coronel Fabriciano · MG</div>
+    <span class="age-gate-icon">🚬</span>
+    <h2>Verificação de Idade</h2>
+    <p>Este site contém produtos relacionados ao tabaco. O acesso é restrito a maiores de 18 anos. Você confirma que tem 18 anos ou mais?</p>
+    <div class="age-btns">
+      <button class="btn-age-yes" onclick="confirmAge(true)">Sim, tenho 18 anos ou mais</button>
+      <button class="btn-age-no"  onclick="confirmAge(false)">Não, sou menor de idade</button>
+    </div>
+  </div>
+</div>
+
+<!-- AGE BLOCKED -->
+<div class="age-warning" id="age-warning">
+  <h2>⛔ Acesso Negado</h2>
+  <p>Você não tem a idade mínima necessária para acessar este conteúdo. Este site é reservado para maiores de 18 anos.</p>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MAIN SITE
+════════════════════════════════════════ -->
+<div id="main-site">
+
+  <!-- NAV OVERLAY -->
+  <div class="nav-overlay" id="nav-overlay" onclick="closeAllNav()"></div>
+
+  <!-- ── HEADER ───────────────────────────── -->
+  <header>
+    <div class="header-inner">
+
+      <button class="hamburger" onclick="toggleNav()" id="hamburger" aria-label="Abrir menu">
+        <span></span><span></span><span></span>
+      </button>
+
+      <a href="#" class="logo">
+        Tabacaria
+        <span>Coronel Fabriciano · MG</span>
+      </a>
+
+      <nav class="main-nav" id="main-nav">
+
+        <!-- Catálogo (mega) -->
+        <div class="nav-item" id="ni-catalogo">
+          <button onclick="toggleNavItem('ni-catalogo')" aria-haspopup="true">
+            Catálogo <span class="nav-chevron">▼</span>
+          </button>
+          <div class="mega-drop">
+            <div class="mega-sidebar">
+              <a href="#catalogo" onclick="closeAllNav()">Todos os Produtos <span class="sidelink-arrow">›</span></a>
+              <a href="#catalogo" onclick="filterProducts('charuto',null);closeAllNav()">Charutos <span class="sidelink-arrow">›</span></a>
+              <a href="#catalogo" onclick="filterProducts('narguilé',null);closeAllNav()">Narguilés <span class="sidelink-arrow">›</span></a>
+              <a href="#catalogo" onclick="filterProducts('cachimbo',null);closeAllNav()">Cachimbos <span class="sidelink-arrow">›</span></a>
+              <a href="#catalogo" onclick="filterProducts('cigarro',null);closeAllNav()">Cigarros <span class="sidelink-arrow">›</span></a>
+              <a href="#catalogo" onclick="filterProducts('acessório',null);closeAllNav()">Acessórios <span class="sidelink-arrow">›</span></a>
+            </div>
+            <div class="mega-links">
+              <div class="mega-cat-label">Destaques</div>
+              <a href="#catalogo" onclick="closeAllNav()">Charuto Cohiba Siglo IV</a>
+              <a href="#catalogo" onclick="closeAllNav()">Narguilé Luxo Egípcio</a>
+              <a href="#catalogo" onclick="closeAllNav()">Cachimbo Briar Importado</a>
+              <a href="#catalogo" onclick="closeAllNav()">Isqueiro Zippo Original</a>
+              <a href="#catalogo" onclick="closeAllNav()">Essência Al Fakher</a>
+              <a href="#catalogo" onclick="closeAllNav()">Cortador Premium</a>
+            </div>
+            <div class="mega-image">
+              <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Charutos" />
+              <div class="mega-image-label"><em>Charutos</em> Exclusivos <span>›</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Localização -->
+        <div class="nav-item" id="ni-local">
+          <button onclick="toggleNavItem('ni-local')">
+            Localização <span class="nav-chevron">▼</span>
+          </button>
+          <div class="simple-drop">
+            <a href="#localizacao" onclick="closeAllNav()">Como Chegar</a>
+            <a href="#localizacao" onclick="closeAllNav()">Horários</a>
+            <a href="#localizacao" onclick="closeAllNav()">Endereço</a>
+          </div>
+        </div>
+
+        <!-- Sobre -->
+        <div class="nav-item" id="ni-sobre">
+          <button onclick="toggleNavItem('ni-sobre')">
+            Sobre <span class="nav-chevron">▼</span>
+          </button>
+          <div class="simple-drop">
+            <a href="#redes" onclick="closeAllNav()">Redes Sociais</a>
+            <a href="#faq"   onclick="closeAllNav()">FAQ</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="#faq">Contato</a>
+        </div>
+
+      </nav>
+
+      <div class="header-right">
+        <button class="icon-btn" onclick="toggleCart()" aria-label="Carrinho">
+          🛒 <span class="badge" id="cart-count">0</span>
+        </button>
+        <button class="header-cart-icon icon-btn" onclick="toggleCart()" aria-label="Carrinho">
+          🛒 <span class="badge" id="hci-badge">0</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MOBILE DRAWER -->
+  <div class="nav-drawer" id="nav-drawer">
+    <div class="drawer-section">
+      <button class="drawer-toggle" onclick="toggleDrawerSub(this)">
+        Catálogo <span class="dt-arrow">›</span>
+      </button>
+      <div class="drawer-sub">
+        <a href="#catalogo" onclick="closeNav()">Todos os Produtos</a>
+        <a href="#catalogo" onclick="filterProducts('charuto',null);closeNav()">Charutos</a>
+        <a href="#catalogo" onclick="filterProducts('narguilé',null);closeNav()">Narguilés</a>
+        <a href="#catalogo" onclick="filterProducts('cachimbo',null);closeNav()">Cachimbos</a>
+        <a href="#catalogo" onclick="filterProducts('cigarro',null);closeNav()">Cigarros</a>
+        <a href="#catalogo" onclick="filterProducts('acessório',null);closeNav()">Acessórios</a>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <button class="drawer-toggle" onclick="toggleDrawerSub(this)">
+        Localização <span class="dt-arrow">›</span>
+      </button>
+      <div class="drawer-sub">
+        <a href="#localizacao" onclick="closeNav()">Como Chegar</a>
+        <a href="#localizacao" onclick="closeNav()">Horários</a>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <a href="#redes" class="drawer-direct" onclick="closeNav()">Redes Sociais <span style="color:var(--gold)">›</span></a>
+    </div>
+    <div class="drawer-section">
+      <a href="#faq" class="drawer-direct" onclick="closeNav()">FAQ / Contato <span style="color:var(--gold)">›</span></a>
+    </div>
+  </div>
+
+  <!-- ── HERO ─────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-particles"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">Desde sempre · Coronel Fabriciano</div>
+      <h1>O melhor do <em>tabaco</em><br>está aqui</h1>
+      <p>Charutos, cigarrilhas, cachimbos, narguilés e muito mais.<br>Uma seleção cuidadosa para os verdadeiros apreciadores.</p>
+      <div class="hero-btns">
+        <a href="#catalogo"   class="btn-primary">Ver Catálogo</a>
+        <a href="#localizacao" class="btn-outline">Como Chegar</a>
+      </div>
+    </div>
+    <div class="hero-line"></div>
+    <div class="scroll-indicator">Explorar</div>
+  </section>
+
+  <!-- ── INFO BAR ──────────────────────────── -->
+  <div class="info-bar">
+    <div class="info-bar-inner">
+      <div class="info-item reveal delay-1">
+        <span class="info-icon">📍</span>
+        <div>
+          <strong>Rua Duque de Caxias, 211</strong>
+          Centro – Coronel Fabriciano, MG
+        </div>
+      </div>
+      <div class="info-item reveal delay-2">
+        <span class="info-icon">🕐</span>
+        <div>
+          <strong>Seg – Sex: 9h às 18h</strong>
+          Sábado: 9h às 13h
+        </div>
+      </div>
+      <div class="info-item reveal delay-3">
+        <span class="info-icon">📱</span>
+        <div>
+          <strong>Atendimento WhatsApp</strong>
+          Faça seu pedido online
+        </div>
+      </div>
+      <div class="info-item reveal delay-4">
+        <span class="info-icon">⭐</span>
+        <div>
+          <strong>Produtos Selecionados</strong>
+          Qualidade garantida
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CATÁLOGO ───────────────────────────── -->
+  <section id="catalogo">
+    <div class="container">
+      <span class="section-label reveal">Nossos Produtos</span>
+      <h2 class="section-title reveal delay-1">Catálogo <em>Premium</em></h2>
+      <div class="divider"></div>
+      <div class="catalog-filters reveal delay-2">
+        <button class="filter-btn active" onclick="filterProducts('all', this)">Todos</button>
+        <button class="filter-btn" onclick="filterProducts('charuto', this)">Charutos</button>
+        <button class="filter-btn" onclick="filterProducts('narguilé', this)">Narguilés</button>
+        <button class="filter-btn" onclick="filterProducts('cachimbo', this)">Cachimbos</button>
+        <button class="filter-btn" onclick="filterProducts('cigarro', this)">Cigarros</button>
+        <button class="filter-btn" onclick="filterProducts('acessório', this)">Acessórios</button>
+      </div>
+      <div class="catalog-grid" id="catalog-grid"></div>
+    </div>
+  </section>
+
+  <!-- ── LOCALIZAÇÃO ────────────────────────── -->
+  <section id="localizacao">
+    <div class="container">
+      <span class="section-label reveal">Venha nos Visitar</span>
+      <h2 class="section-title reveal delay-1">Localização & <em>Horários</em></h2>
+      <div class="divider"></div>
+      <div class="map-grid">
+        <div class="map-wrapper reveal-left">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3755.4!2d-42.628!3d-19.527!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTnCsDMxJzM3LjIiUyA0MsKwMzcnNDAuOCJX!5e0!3m2!1spt!2sbr!4v1"
+            allowfullscreen=""
+            loading="lazy"
+            title="Localização da Tabacaria">
+          </iframe>
+        </div>
+        <div class="hours-card reveal-right">
+          <span class="section-label" style="margin-bottom:1.5rem;">Horário de Funcionamento</span>
+          <div class="hours-row"><span class="hours-day">Segunda-feira</span><span class="hours-time">9:00 – 18:00</span></div>
+          <div class="hours-row"><span class="hours-day">Terça-feira</span><span class="hours-time">9:00 – 18:00</span></div>
+          <div class="hours-row"><span class="hours-day">Quarta-feira</span><span class="hours-time">9:00 – 18:00</span></div>
+          <div class="hours-row"><span class="hours-day">Quinta-feira</span><span class="hours-time">9:00 – 18:00</span></div>
+          <div class="hours-row"><span class="hours-day">Sexta-feira</span><span class="hours-time">9:00 – 18:00</span></div>
+          <div class="hours-row"><span class="hours-day">Sábado</span><span class="hours-time">9:00 – 13:00</span></div>
+          <div class="hours-row"><span class="hours-day">Domingo</span><span class="hours-time closed">Fechado</span></div>
+          <div id="store-status"></div>
+          <div class="address-block">
+            <span class="address-icon">📍</span>
+            <div class="address-text">
+              Rua Duque de Caxias, 211<br>
+              Centro – Coronel Fabriciano<br>
+              Minas Gerais – CEP 35170-078
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── REDES SOCIAIS ─────────────────────── -->
+  <section id="redes">
+    <div class="container">
+      <span class="section-label reveal">Nos Acompanhe</span>
+      <h2 class="section-title reveal delay-1">Redes <em>Sociais</em></h2>
+      <div class="divider"></div>
+      <p class="reveal delay-2" style="font-family:'Cormorant Garamond';font-size:1.1rem;color:var(--text-muted);max-width:550px;">
+        Fique por dentro das novidades, promoções exclusivas e conteúdo especial para apreciadores do tabaco.
+      </p>
+      <div class="social-grid">
+        <a href="#" class="social-card reveal-scale delay-1" target="_blank">
+          <span class="social-icon">📸</span>
+          <div class="social-name">Instagram</div>
+          <div class="social-handle">@tabacaria.cf</div>
+        </a>
+        <a href="#" class="social-card reveal-scale delay-2" target="_blank">
+          <span class="social-icon">💬</span>
+          <div class="social-name">WhatsApp</div>
+          <div class="social-handle">Fale conosco</div>
+        </a>
+        <a href="#" class="social-card reveal-scale delay-3" target="_blank">
+          <span class="social-icon">👍</span>
+          <div class="social-name">Facebook</div>
+          <div class="social-handle">/tabacaria.coronelfabriciano</div>
+        </a>
+        <a href="#" class="social-card reveal-scale delay-4" target="_blank">
+          <span class="social-icon">🎵</span>
+          <div class="social-name">TikTok</div>
+          <div class="social-handle">@tabacaria.cf</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ───────────────────────────────── -->
+  <section id="faq">
+    <div class="container">
+      <span class="section-label reveal">Dúvidas Frequentes</span>
+      <h2 class="section-title reveal delay-1">Perguntas & <em>Respostas</em></h2>
+      <div class="divider"></div>
+      <div class="faq-list">
+        <div class="faq-item reveal delay-1">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Vocês realizam entrega? <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Sim! Realizamos entregas na região de Coronel Fabriciano e cidades próximas. Entre em contato pelo WhatsApp para verificar disponibilidade e condições de entrega para o seu endereço.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal delay-2">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Quais formas de pagamento são aceitas? <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Aceitamos dinheiro, Pix, cartão de débito e crédito (todas as bandeiras). Para pagamentos no WhatsApp, trabalhamos com Pix e transferência bancária.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal delay-3">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Como funciona a seleção pelo site? <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Você pode navegar pelo catálogo, selecionar os produtos desejados, preencher um formulário com seus dados e enviar sua solicitação diretamente pelo WhatsApp. Nossa equipe irá confirmar disponibilidade e valores em seguida.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal delay-4">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Vocês trabalham com produtos personalizados? <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Sim! Temos linhas especiais de charutos e cachimbos personalizados, ideais para presentes e eventos corporativos. Entre em contato para solicitar um orçamento especial.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal delay-5">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            É necessário apresentar documento? <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Sim. Por lei, a venda de produtos derivados do tabaco é exclusiva para maiores de 18 anos. Documentos com foto poderão ser solicitados no momento da entrega ou retirada.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal delay-6">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            Vocês fazem degustação de charutos? <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Periodicamente realizamos eventos de degustação na loja. Fique atento às nossas redes sociais para saber das próximas datas e como participar.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ─────────────────────────────── -->
+  <footer>
+    <div class="footer-grid">
+      <div class="reveal">
+        <div class="footer-logo">Tabacaria</div>
+        <p class="footer-desc">Uma seleção cuidadosa para quem aprecia o melhor do tabaco. Tradição, qualidade e atendimento personalizado em Coronel Fabriciano.</p>
+      </div>
+      <div class="footer-col reveal delay-2">
+        <h4>Navegação</h4>
+        <ul class="footer-links">
+          <li><a href="#catalogo">Catálogo</a></li>
+          <li><a href="#localizacao">Localização</a></li>
+          <li><a href="#redes">Redes Sociais</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-col reveal delay-3">
+        <h4>Contato</h4>
+        <ul class="footer-links">
+          <li><a href="#">WhatsApp</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Facebook</a></li>
+          <li><a href="#">Rua Duque de Caxias, 211</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2025 Tabacaria – Coronel Fabriciano, MG. Todos os direitos reservados.</div>
+      <div class="legal-warning">⚠️ Venda proibida para menores de 18 anos. Ministério da Saúde adverte: fumar causa câncer, infarto do miocárdio, derrame cerebral e impotência sexual.</div>
+    </div>
+  </footer>
+
+</div><!-- /#main-site -->
+
+<!-- ── FLOATING CART FAB ────────────────── -->
+<button class="cart-fab" id="cart-fab" onclick="toggleCart()" style="display:none">
+  🛒 <span class="cart-fab-count" id="cart-fab-count">0</span>
+</button>
+
+<!-- ── CART PANEL ───────────────────────── -->
+<div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+<div class="cart-panel" id="cart-panel">
+  <div class="cart-header">
+    <h3>Sua Seleção</h3>
+    <button class="close-cart" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items-list"></div>
+  <div class="cart-footer">
+    <div class="cart-total">
+      <span>Total estimado</span>
+      <strong id="cart-total-price">R$ 0,00</strong>
+    </div>
+    <button class="checkout-btn" onclick="openCheckout()">Solicitar pelo WhatsApp →</button>
+  </div>
+</div>
+
+<!-- ── CHECKOUT MODAL ───────────────────── -->
+<div class="modal-overlay" id="checkout-modal">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3>Finalizar Pedido</h3>
+      <p>Preencha seus dados para enviar ao WhatsApp</p>
+    </div>
+    <div class="modal-body">
+      <div class="order-summary" id="order-summary"></div>
+      <div class="form-group">
+        <label>Nome Completo <span>*</span></label>
+        <input type="text"  id="field-nome"     placeholder="Seu nome completo" />
+      </div>
+      <div class="form-group">
+        <label>CPF / CNPJ <span>*</span></label>
+        <input type="text"  id="field-cpf"      placeholder="000.000.000-00 ou 00.000.000/0001-00" />
+      </div>
+      <div class="form-group">
+        <label>Endereço Completo <span>*</span></label>
+        <textarea id="field-endereco" placeholder="Rua, número, bairro, cidade, CEP"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Telefone <span>*</span></label>
+        <input type="tel"   id="field-telefone" placeholder="(31) 9 0000-0000" />
+      </div>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" id="field-email"    placeholder="seu@email.com" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeCheckout()">Voltar</button>
+      <button class="btn-primary" onclick="sendToWhatsApp()">Enviar pelo WhatsApp 📱</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
