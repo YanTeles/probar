@@ -52,8 +52,11 @@
       </button>
 
       <a href="#" class="logo">
-        Tabacaria
-        <span>Coronel Fabriciano · MG</span>
+        <img src="assets/logo.pdf" alt="Logo Tabacaria" class="logo-img" loading="lazy" />
+        <div class="logo-text">
+          <div class="logo-name">Tabacaria</div>
+          <span>Coronel Fabriciano · MG</span>
+        </div>
       </a>
 
       <nav class="main-nav" id="main-nav">
@@ -228,6 +231,11 @@
         <button class="filter-btn" onclick="filterProducts('acessório', this)">Acessórios</button>
       </div>
       <div class="catalog-grid" id="catalog-grid"></div>
+      <div class="load-more-container">
+        <button id="load-more-btn" class="load-more-btn" onclick="loadMoreProducts()" style="display:none;">
+          Carregar Mais Produtos →
+        </button>
+      </div>
     </div>
   </section>
 
