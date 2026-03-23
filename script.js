@@ -6,7 +6,7 @@
 
 // ===== PRODUCTS DATA =====
 const productList = [
-  { name: "ALEDA CELULOSE KING SIZE", price: 53.00 },
+  { name: "ALEDA CELULOSE KING SIZE", price: 53.00, img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=70" },
   { name: "ALUMINIO PARA NARGUILE", price: 15.00 },
   { name: "BAG G TONABE", price: 65.00 },
   { name: "BAG P TONABE", price: 25.00 },
@@ -182,7 +182,7 @@ const products = productList.map((item, idx) => ({
   cat: getCategoryByName(item.name),
   price: item.price,
   desc: `Produto ${item.name}. De alta qualidade e melhor preço.`,
-  img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=70"
+  img: "/assets/produtos/aledaKing.HEIC", // default placeholder
 }));
 
 let cart = [];
