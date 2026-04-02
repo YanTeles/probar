@@ -157,5 +157,260 @@
 <button class="cart-fab" id="cart-fab" onclick="toggleCart()"><span id="cart-fab-count">0</span> 🛒</button>
 
 <script src="script.js"></script>
+<style>
+/* Admin Panel Styles */
+.admin-fab {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  z-index: 250;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+  transition: all 0.3s ease;
+}
+.admin-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 30px rgba(102,126,234,0.6);
+}
+.admin-panel-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 249;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+.admin-panel-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+.admin-panel {
+  background: white;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  border-radius: 12px;
+  overflow-y: auto;
+  transform: translateX(110%);
+  transition: transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+}
+.admin-panel-overlay.show .admin-panel {
+  transform: translateX(0);
+}
+.admin-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 30px 25px 25px;
+  text-align: center;
+}
+.admin-header h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+.admin-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.6rem;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+.admin-close:hover {
+  opacity: 1;
+}
+.admin-form {
+  padding: 30px 25px 40px;
+}
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+.form-row .form-group {
+  flex: 1;
+}
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #444;
+  font-size: 0.9rem;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 13px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background: #fafbfc;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+}
+.form-group textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+.admin-submit {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  padding: 16px 30px;
+  width: 100%;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.admin-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(40,167,69,0.3);
+}
+.success-msg {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border: 1px solid #c3e6cb;
+  color: #155724;
+  padding: 18px;
+  border-radius: 8px;
+  margin: 20px 0;
+  text-align: center;
+  font-weight: 500;
+  display: none;
+}
+@media (max-width: 600px) {
+  .admin-fab {
+    bottom: 25px;
+    right: 20px;
+  }
+  .admin-panel-overlay {
+    padding: 10px;
+  }
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+</style>
+
+<div id="admin-panel" class="admin-panel-overlay" style="display: none;">
+  <div class="admin-panel">
+    <button class="admin-close" onclick="toggleAdminPanel()">&times;</button>
+    <div class="admin-header">
+      <h3>🚬 Adicionar Novo Produto</h3>
+      <p>Preencha os dados e o produto aparecerá automaticamente no catálogo</p>
+    </div>
+    <form action="api/admin/add.php" method="POST" enctype="multipart/form-data">
+      <div class="admin-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nome *</label>
+            <input type="text" name="name" required maxlength="200">
+          </div>
+          <div class="form-group">
+            <label>Preço (R$)*</label>
+            <input type="number" name="price" step="0.01" min="0.01" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Categoria *</label>
+          <select name="category" required>
+            <option value="">Selecione...</option>
+            <option value="charuto">Charuto</option>
+            <option value="narguilé">Narguilé</option>
+            <option value="cigarro">Cigarro</option>
+            <option value="cachimbo">Cachimbo</option>
+            <option value="acessório">Acessório</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Foto (JPG/PNG máx 5MB) *</label>
+          <input type="file" name="photo" accept="image/jpeg,image/png" required>
+        </div>
+        <div class="form-group">
+          <label>Descrição</label>
+          <textarea name="desc" placeholder="Opcional: detalhes técnicos, sabor, origem..."></textarea>
+        </div>
+        <button type="submit" class="admin-submit">➕ Adicionar ao Catálogo</button>
+        <div class="success-msg" id="admin-success-msg">✅ Sucesso! Produto adicionado. Feche e atualize o catálogo.</div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<button class="admin-fab" onclick="toggleAdminPanel()" title="Admin - Adicionar Produto">🔧</button>
+
+<script>
+function toggleAdminPanel() {
+  const panel = document.getElementById('admin-panel');
+  const fab = document.querySelector('.admin-fab');
+  panel.classList.toggle('show');
+  fab.style.opacity = panel.classList.contains('show') ? '0.3' : '1';
+  if (panel.classList.contains('show')) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+}
+
+// Show fab after age gate
+document.addEventListener('DOMContentLoaded', () => {
+  const fab = document.querySelector('.admin-fab');
+  setTimeout(() => fab.style.opacity = '1', 2000);
+});
+
+// Success handling from add.php redirect
+if (window.location.search.includes('success=1')) {
+  const msg = document.getElementById('admin-success-msg');
+  if (msg) msg.style.display = 'block';
+  // Reload products after 2s
+  setTimeout(() => location.reload(), 2000);
+}
+
+// Close on overlay click
+document.getElementById('admin-panel').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) toggleAdminPanel();
+});
+</script>
 </body>
 </html>

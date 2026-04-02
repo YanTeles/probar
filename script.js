@@ -4,164 +4,42 @@
 
 'use strict';
 
-// ===== PRODUCTS DATA =====
-const productList = [
-  { name: "ALEDA CELULOSE KING SIZE", price: 53.00, img: "aledag.jpeg" },
-  { name: "ALUMINIO PARA NARGUILE", price: 15.00, img: "aluminio-narguile.jpeg" },
-  { name: "BAG G TONABE", price: 65.00, img: "bag-g.jpeg" },
-  { name: "BAG P TONABE", price: 25.00, img: "bag-p.jpeg" },
-  { name: "BOLADOR HI TOBACCO 110MM", price: 11.50, img: "rollingMachine.jpeg" },
-  { name: "BOLADOR HI TOBACCO 78 MM", price: 10.55, img: "bolador-78.jpeg" },
-  { name: "CAIXA TUBELITO PORTA CIGARROS PAPELITO C/ 12", price: 110.00, img: "tubelito.jpeg" },
-  { name: "CARVÃO ZOMO 1KG", price: 30.00, img: "carvao-zomo.jpeg" },
-  { name: "CASE SADHU IMPERMEÁVEL G", price: 57.00, img: "case-sadhu.jpeg" },
-  { name: "CASE TONABE GRANDE", price: 30.00, img: "case-tonabe-g.jpeg" },
-  { name: "CASE TONABE PEQUENA", price: 25.00, img: "case-tonabe-p.jpeg" },
-  { name: "CINZEIRO AUTOMOTIVO TONABE", price: 65.00, img: "cinzeiro-auto.jpeg" },
-  { name: "CINZEIRO DE VIDRO TONABE", price: 15.00, img: "cinzeiro-vidro.jpeg" },
-  { name: "CINZEIRO SQUADAFUM QUADRADO GRANDE", price: 29.90, img: "cinzeiro-sq-g.jpeg" },
-  { name: "CINZEIRO SQUADAFUM REDONDO PEQUENO", price: 20.99, img: "cinzeiro-sq-p.jpeg" },
-  { name: "CLIPPER GRANDE 24UN", price: 129.60, img: "clipper-24.jpeg" },
-  { name: "CONES PRE BOLADOS G", price: 25.00, img: "cones-g.jpeg" },
-  { name: "CONES PRE BOLADOS P", price: 12.50, img: "cones-p.jpeg" },
-  { name: "CUIA SILICONE TONABE", price: 8.00, img: "cuia-silicone.jpeg" },
-  { name: "DIAMANTE NEGRO DP C/12X34G", price: 39.99, img: "diamante-negro.jpeg" },
-  { name: "DICHAVADOR ACRÍLICO BEM BOLADO PEQUENO DISPLAY COM 7 UNIDADES", price: 66.90, img: "dichavadorBemBolado.jpeg" },
-  { name: "DICHAVADOR FIBRA DE COCO", price: 3.00, img: "dichavador-coco.jpeg" },
-  { name: "DICHAVADOR TONABE", price: 30.00, img: "dichavador-tonabe.jpeg" },
-  { name: "DICHAV. BEM BOLADO ACRILICO GD", price: 138.90, img: "dichavador-bb-g.jpeg" },
-  { name: "DROP HALLS CEREJA", price: 25.50, img: "halls-cereja.jpeg" },
-  { name: "DROP HALLS EXTRA FORTE PRETO", price: 25.50, img: "halls-preto.jpeg" },
-  { name: "DROP HALLS MELANCIA", price: 25.20, img: "halls-melancia.jpeg" },
-  { name: "DROP HALLS MENTA VERDE", price: 25.20, img: "halls-menta.jpeg" },
-  { name: "DROP HALLS MENTOL AZUL", price: 25.20, img: "halls-azul.jpeg" },
-  { name: "DROP HALLS MORANGO", price: 25.20, img: "halls-morango.jpeg" },
-  { name: "FLUIDO VOLCANO", price: 21.50, img: "fluido-volcano.jpeg" },
-  { name: "GAS VOLCANO", price: 21.90, img: "gas-volcano.jpeg" },
-  { name: "GATORADE FD C 6", price: 29.34, img: "gatorade.jpeg" },
-  { name: "GUDA - INCENSO (25 CX COM 7 VARETAS)", price: 30.00, img: "incenso-guda.jpeg" },
-  { name: "HERBAL WRAP KING MIX SABORES VARIADOS KING SIZE REGULAR - DISPLAY COM 25 BAGS", price: 125.00, img: "kingHerbalWrap.jpeg" },
-  { name: "HEXAGONAL SILVER INCENSO - (6 CXS COM 20 VARETAS)", price: 30.00, img: "incenso-hex.jpeg" },
-  { name: "INDIA SOUL INCENSO (12 CX COM 13 VARETAS)", price: 95.00, img: "incenso-india.jpeg" },
-  { name: "ISQUEIRO BIC MAXI CARTELA C/12", price: 51.00, img: "bic-maxi.jpeg" },
-  { name: "ISQUEIRO BIC MINI CARTELA C/12", price: 39.00, img: "bic-mini.jpeg" },
-  { name: "ISQUEIRO CRICKET C/10", price: 45.90, img: "cricket.jpeg" },
-  { name: "ISQUEIRO HIPER BANDEJA C/ 50 UN", price: 60.00, img: "isqueiro-hiper.jpeg" },
-  { name: "LAKA BRANCO DP C/12X34G", price: 39.99, img: "laka.jpeg" },
-  { name: "MAÇARICO NAAR", price: 0.00, img: "macarico-naar.jpeg" },
-  { name: "MACARICO SADHU", price: 25.00, img: "macarico-sadhu.jpeg" },
-  { name: "MAÇARICO ZENGAZ CORES", price: 24.00, img: "macarico-zengaz.jpeg" },
-  { name: "NEW PUFF ISQUEIRO EMBORRACHADO", price: 27.50, img: "new-puff-isq.jpeg" },
-  { name: "NEW PUFF SHOULDER BAG - CINZA", price: 129.90, img: "bag-cinza.jpeg" },
-  { name: "NEW PUFF SHOULDER BAG - PINK", price: 129.90, img: "bag-pink.jpeg" },
-  { name: "NEW PUFF SHOULDER BAG - PRETA", price: 129.90, img: "bag-preta.jpeg" },
-  { name: "NEW PUFF SHOULDER BAG - VERDE", price: 129.90, img: "bag-verde.jpeg" },
-  { name: "OCB", price: 210.00, img: "ocb.jpeg" },
-  { name: "PACOCA RIQUITA RETANGULAR CX C 170 UN", price: 45.90, img: "pacoca-ret.jpeg" },
-  { name: "PAÇOCA RIQUITA ROLHINHA CX COM 100 UN", price: 24.90, img: "pacoca-rolha.jpeg" },
-  { name: "PAÇOCA TIPO CASEIRA UN", price: 0.99, img: "pacoca-un.jpeg" },
-  { name: "PALHA CAPITÃO", price: 125.00, img: "palha-capitao.jpeg" },
-  { name: "PALHA ESPECIAL MATA LEÃO", price: 125.00, img: "palha-mata-leao.jpeg" },
-  { name: "PAPEL SEDA ALEDA OURO BROWN", price: 39.99, img: "aledaOuro.jpeg" },
-  { name: "PAPEL SEDA ALEDA PRATA KING SIZE", price: 39.99, img: "aleda-prata.jpeg" },
-  { name: "PAPEL TRANSPARENTE ALEDA BLUE SIZE - DISPLAY COM 20 UNIDADES PT ALEDA BS", price: 50.00, img: "aledab.jpeg" },
-  { name: "PAY PAY ALFAFA", price: 235.00, img: "pay-pay.jpeg" },
-  { name: "PITEIRA BEM BOLADO BROWN LARGE", price: 58.90, img: "piteirabblarge.jpeg" },
-  { name: "PITEIRA BEM BOLADO EXTRA LARGE CX 24X32", price: 65.00, img: "piteira-bb-xl.jpeg" },
-  { name: "PITEIRA BEM BOLADO GIRLS IN GREEN ROXA", price: 95.00, img: "piteira-gig-roxa.jpeg" },
-  { name: "PITEIRA BEM BOLADO GIRLS IN GREEN (ROXA HIPER LARGE)", price: 100.00, img: "piteira-gig-hiper.jpeg" },
-  { name: "PITEIRA BEM BOLADO GIRLS IN GREEN (VERDE)", price: 95.00, img: "piteira-gig-verde.jpeg" },
-  { name: "PITEIRA BEM BOLADO POP LARGE (VERDE)", price: 56.00, img: "piteira-pop-l.jpeg" },
-  { name: "PITEIRA BEM BOLADO POP SLIM (LARANJA)", price: 51.00, img: "piteiraBemBoladoLaranja.jpeg" },
-  { name: "PITEIRA BEM BOLADO PREMIUM", price: 55.00, img: "piteira-bb-prem.jpeg" },
-  { name: "PITEIRA DE PAPEL MEGA LONGA TONABE", price: 125.00, img: "piteira-mega.jpeg" },
-  { name: "PITEIRA TONABE COTTON", price: 90.00, img: "piteira-cotton.jpeg" },
-  { name: "PITEIRA TONABE EXTRA LARGE", price: 99.00, img: "piteira-xl.jpeg" },
-  { name: "PITEIRA TONABE LARGE PAPEL VERGÊ", price: 100.00, img: "piteira-verge.jpeg" },
-  { name: "PITEIRA TONABE LIXO MANIA CX C 30", price: 75.00, img: "piteira-lixo.jpeg" },
-  { name: "PITEIRA TONABE ULTRA LONGA C 30", price: 120.00, img: "piteira-ultra.jpeg" },
-  { name: "PITEIRA ULTRA LONGA TONABE", price: 99.00, img: "piteira-ultra-2.jpeg" },
-  { name: "PITEIRA YELLOW FINGER ROXA", price: 89.90, img: "yellow-roxa.jpeg" },
-  { name: "POTE HERMÉTICO", price: 12.00, img: "pote-hermetico.jpeg" },
-  { name: "PUFF ALÇA - GANJA", price: 34.90, img: "puff-ganja.jpeg" },
-  { name: "PUFF ALÇA - RELEVO", price: 34.90, img: "puff-relevo.jpeg" },
-  { name: "PUFF CASE CLÁSSICA VENTS", price: 109.99, img: "puff-vents.jpeg" },
-  { name: "PUFF CASE CLASSICO - COLORS", price: 101.90, img: "puff-colors.jpeg" },
-  { name: "PUFF CASE CLASSICO - CREME", price: 99.90, img: "puff-creme.jpeg" },
-  { name: "PUFF CASE CLASSICO LIL WHIND", price: 107.90, img: "puff-whind.jpeg" },
-  { name: "PUFF CASE CLASSICO - PRETO", price: 99.90, img: "puff-preto.jpeg" },
-  { name: "PUFF CASE CLASSICO RAW", price: 119.90, img: "puff-raw.jpeg" },
-  { name: "PUFF CASE CLASSICO - STREET", price: 101.90, img: "puff-street.jpeg" },
-  { name: "PUFF CASE MINI - CREME", price: 59.90, img: "puff-mini-creme.jpeg" },
-  { name: "PUFF CASE MINI PRETO", price: 59.90, img: "puff-mini-preto.jpeg" },
-  { name: "PUFF CASE PITEIRA DE VIDRO COLLAB HIPPIE BONG", price: 99.90, img: "puff-hippie.jpeg" },
-  { name: "PUFF CASE PRO COLORS", price: 169.99, img: "puff-pro-colors.jpeg" },
-  { name: "PUFF CASE PRO LIL WHIND", price: 173.90, img: "puff-pro-whind.jpeg" },
-  { name: "PUFF CASE PRO - PRETO", price: 154.90, img: "puff-pro-preto.jpeg" },
-  { name: "PUFF CASE PRO - RAW CASTOR", price: 0.00, img: "puff-pro-raw.jpeg" },
-  { name: "PUFF CASE PRO VENTS", price: 175.99, img: "puff-pro-vents.jpeg" },
-  { name: "PUFF CASE SLIM ALEDA", price: 79.90, img: "puff-slim-aleda.jpeg" },
-  { name: "PUFF CASE SLIM BADAUI 2.0", price: 84.90, img: "puff-slim-badaui.jpeg" },
-  { name: "PUFF CASE SLIM BADEGO", price: 89.90, img: "puff-slim-badego.jpeg" },
-  { name: "PUFF CASE SLIM COLLORS", price: 89.99, img: "puff-slim-colors.jpeg" },
-  { name: "PUFF CASE SLIM - CREME", price: 74.99, img: "puff-slim-creme.jpeg" },
-  { name: "PUFF CASE SLIM LIL WHIND", price: 89.90, img: "puff-slim-whind.jpeg" },
-  { name: "PUFF CASE SLIM PRETO", price: 74.99, img: "puff-slim-preto.jpeg" },
-  { name: "PUFF CASE SLIM VENTS", price: 89.99, img: "puff-slim-vents.jpeg" },
-  { name: "PUFF CORDAO CHAVEIRO", price: 65.90, img: "puff-cordao.jpeg" },
-  { name: "PUFF HAND BAG URBAN", price: 83.90, img: "puff-urban.jpeg" },
-  { name: "PUFF MINI SHOULDER BAG", price: 79.99, img: "puff-mini-bag.jpeg" },
-  { name: "PUFF PORTA PITEIRA", price: 28.90, img: "puff-porta-piteira.jpeg" },
-  { name: "PUFF TUBO", price: 20.90, img: "puff-tubo.jpeg" },
-  { name: "PUFF ZIP 1.0", price: 0.00, img: "puff-zip.jpeg" },
-  { name: "SEDA RAW C/ PITEIRA", price: 230.00, img: "raw-piteira.jpeg" },
-  { name: "SEDA RAW ORIGINAL", price: 270.00, img: "raw-original.jpeg" },
-  { name: "REFIL VOLCANO", price: 25.00, img: "refil-volcano.jpeg" },
-  { name: "SATYA INCENSO - (12 CX COM 12 VARETAS)", price: 95.00, img: "satya.jpeg" },
-  { name: "SEDA ALEDA 1/4 MINI SIZE", price: 45.00, img: "aleda14.jpeg" },
-  { name: "SEDA BEM BOLADO BROWN LARGE CX C 50UN", price: 140.00, img: "bb-brown-l.jpeg" },
-  { name: "SEDA BEM BOLADO BROWN SLIM CX C 50UN", price: 130.00, img: "bb-brown-s.jpeg" },
-  { name: "SEDA BEM BOLADO LARGE CX C 50UN", price: 105.00, img: "bb-large.jpeg" },
-  { name: "SEDA BEM BOLADO LONG SIZE LARGE", price: 0.00, img: "bb-long.jpeg" },
-  { name: "SEDA BEM BOLADO SLIM CX C 50UN", price: 105.00, img: "bb-slim.jpeg" },
-  { name: "SEDA ELEMENTS SLIM", price: 240.00, img: "elements.jpeg" },
-  { name: "SEDA KING PAPER BROWN", price: 40.00, img: "king-brown.jpeg" },
-  { name: "SEDA KING PAPER WHITE", price: 14.00, img: "originalKing.jpeg" },
-  { name: "SEDA OCB MINI SIZE", price: 0.00, img: "ocb-mini.jpeg" },
-  { name: "SEDA PAPELITO BRANCO SLIM", price: 100.00, img: "papelito-branco.jpeg" },
-  { name: "SEDA PAPELITO BROWN KING SIZE", price: 120.00, img: "papelito-brown-ks.jpeg" },
-  { name: "SEDA PAPELITO BROWN LONGA", price: 90.00, img: "papelito-brown-l.jpeg" },
-  { name: "SEDA PAPELITO BROWN SLIM", price: 120.00, img: "papelito-brown-s.jpeg" },
-  { name: "SEDA PAPELITO TRADICIONAL (AMARELO) C/ 50", price: 96.00, img: "papelito-trad.jpeg" },
-  { name: "SEDA PAPELITO TRADICIONAL LONGA", price: 75.00, img: "papelito-trad-l.jpeg" },
-  { name: "SEDA PAPELITO TROPICAL", price: 105.00, img: "papelito-tropical.jpeg" },
-  { name: "SEDA + PITEIRA ALEDA LIMITED EDITION BRANCO KING SIZE REGULAR - DISPLAY COM 24 LIVRETOS", price: 150.00, img: "aleda-ltd.jpeg" },
-  { name: "SEDA PUFF LIFE", price: 103.50, img: "puff-life.jpeg" },
-  { name: "SEDA RAW BLACK", price: 320.00, img: "raw-black.jpeg" },
-  { name: "SEDA RAW CLÁSSICA", price: 290.00, img: "raw-classic.jpeg" },
-  { name: "SEDA SABOTAGE BEM BOLADO", price: 80.00, img: "sabotage.jpeg" },
-  { name: "SEDA SMOKING BROWN", price: 0.00, img: "smoking-brown.jpeg" },
-  { name: "SEDA SMOKING SUPREME KS", price: 200.00, img: "smoking-supreme.jpeg" },
-  { name: "SEDA TATU DO BEM BROWN", price: 55.00, img: "tatu-brown.jpeg" },
-  { name: "SEDA TATU DO BEM LARANJA", price: 50.00, img: "tatu-laranja.jpeg" },
-  { name: "SEDA TATU DO BEM VERDE", price: 50.00, img: "tatu-verde.jpeg" },
-  { name: "SILVER INCENSO - (12 CX COM 12 VARETAS)", price: 95.00, img: "incenso-silver.jpeg" },
-  { name: "SILVER INCENSO MINI - (25 CXS COM 7 VARETAS)", price: 115.00, img: "incenso-silver-mini.jpeg" },
-  { name: "SLICK TONABE 5 ML SILICONE C/10", price: 65.00, img: "slick-silicone.jpeg" },
-  { name: "SLICK VIDRO TONABE DISPLAY COM 6 UNID", price: 75.00, img: "slick-vidro.jpeg" },
-  { name: "SMOLKING BROWN ORIGINAL CX C/50 LIVRETOS", price: 240.00, img: "smoking-br-50.jpeg" },
-  { name: "SMOLKING PRATA  (ORIGINAL) CX C/50 LIVRETOS", price: 220.00, img: "smoking-prata.jpeg" },
-  { name: "SMOLKING PRETO (ORIGINAL) CX C/50 LIVRETOS", price: 220.00, img: "smoking-preto.jpeg" },
-  { name: "SNICKERS BRANCO", price: 69.99, img: "snickers-branco.jpeg" },
-  { name: "SNICKERS TRADICIONAL", price: 69.99, img: "snickers-trad.jpeg" },
-  { name: "TESOURA AÇO INOXIDAVEL", price: 10.00, img: "tesoura.jpeg" },
-  { name: "TESOURA TONABE", price: 80.00, img: "tesoura-tonabe.jpeg" },
-  { name: "TOLIMPÃO TONABE", price: 0.00, img: "tolimpao.jpeg" },
-  { name: "ZOMO BROWN 50 LIVRETOS", price: 70.00, img: "zomo-brown.jpeg" },
-  { name: "ZOMO ALFAFA CX C 50", price: 90.00, img: "zomo-alfafa.jpeg" },
-  { name: "ZOMO BLACK CX C 50UN", price: 70.00, img: "zomo-black.jpeg" },
-  { name: "ZOMO PINK CX C 25UN", price: 35.00, img: "zomo-pink.jpeg" },
-];
+// ===== Produtos carregados do banco Hostinger ====
+let products = [];  // Carregado dinamicamente via API
+
+async function loadProducts() {
+  try {
+    const grid = document.getElementById('catalog-grid');
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gold);">🔄 Carregando produtos do servidor...</div>';
+    
+    const res = await fetch('/api/get_products.php');
+    if (!res.ok) throw new Error('Erro API');
+    
+    const dbProducts = await res.json();
+    
+    products = dbProducts.map(item => ({
+      id: item.id,
+      name: item.name,
+      cat: item.category || getCategoryByName(item.name),
+      price: parseFloat(item.price),
+      desc: item.desc || 'Produto premium para apreciadores.',
+      img: item.img_filename ? `assets/produtos/${item.img_filename}` : '',
+      img_filename: item.img_filename,
+      fallback: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=70"
+    })).filter(p => p.img);  // Só produtos com foto
+    
+    if (products.length === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">Nenhum produto no banco. Use <a href="/api/admin/" target="_blank" style="color:var(--accent);">Admin Painel</a> para adicionar. 😌</div>';
+      return;
+    }
+    
+    renderCatalog(activeFilter, true);
+  } catch (e) {
+    console.error('Erro loadProducts:', e);
+    document.getElementById('catalog-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#ff6b6b;">❌ Erro ao carregar produtos. Verifique se API /api/get_products.php está OK no Hostinger.<br><small>Clique F12 > Console para detalhes.</small></div>';
+  }
+}
+
 
 function getCategoryByName(name) {
   const n = name.toUpperCase();
@@ -172,15 +50,7 @@ function getCategoryByName(name) {
   return 'acessório';
 }
 
-const products = productList.map((item, idx) => ({
-  id: idx + 1,
-  name: item.name,
-  cat: getCategoryByName(item.name),
-  price: item.price,
-  desc: `Produto premium para apreciadores.`,
-  img: `assets/produtos/${item.img}`, 
-  fallback: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=70"
-}));
+
 
 let cart = [];
 let activeFilter = 'all';
@@ -233,7 +103,9 @@ function initHeaderScroll() {
 function handleSearch(value) {
   searchTerm = value.toLowerCase();
   currentPage = 1;
-  renderCatalog(activeFilter, true);
+  if (products.length > 0) {
+    renderCatalog(activeFilter, true);
+  }
 }
 
 function renderCatalog(filter = 'all', reset = true) {
@@ -297,7 +169,11 @@ function filterProducts(cat, btn) {
   activeFilter = cat;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  renderCatalog(cat, true);
+  if (products.length > 0) {
+    renderCatalog(cat, true);
+  } else {
+    loadProducts();  // Recarrega se necessário
+  }
 }
 
 function toggleProduct(id) {
@@ -326,8 +202,9 @@ function confirmAge(isAdult) {
     setTimeout(() => {
       gate.style.display = 'none';
       document.getElementById('main-site').classList.add('visible');
-      renderCatalog();
+      loadProducts();
       updateCartUI();
+
       checkStoreStatus();
       initParticles();
       initHeaderScroll();
