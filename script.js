@@ -12,7 +12,7 @@ async function loadProducts() {
     const grid = document.getElementById('catalog-grid');
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gold);">🔄 Carregando produtos do servidor...</div>';
     
-    const res = await fetch('/api/get_products.php');
+    const res = await fetch('http://localhost:3000/api/products');
     if (!res.ok) throw new Error('Erro API');
     
     const dbProducts = await res.json();
@@ -29,14 +29,14 @@ async function loadProducts() {
     })).filter(p => p.img);  // Só produtos com foto
     
     if (products.length === 0) {
-      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">Nenhum produto no banco. Use <a href="/api/admin/" target="_blank" style="color:var(--accent);">Admin Painel</a> para adicionar. 😌</div>';
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">Nenhum produto no banco. Use Admin FAB (🔧) para adicionar. 😌</div>';
       return;
     }
     
     renderCatalog(activeFilter, true);
   } catch (e) {
     console.error('Erro loadProducts:', e);
-    document.getElementById('catalog-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#ff6b6b;">❌ Erro ao carregar produtos. Verifique se API /api/get_products.php está OK no Hostinger.<br><small>Clique F12 > Console para detalhes.</small></div>';
+    document.getElementById('catalog-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#ff6b6b;">❌ Erro ao carregar produtos. Verifique http://localhost:3000/api/products (F12 Console).<br><small>Clique F12 > Console para detalhes.</small></div>';
   }
 }
 
