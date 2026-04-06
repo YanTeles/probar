@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Gerenciar Produtos | Tabacaria Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* CSS same as original */
+    body { font-family: 'Montserrat', sans-serif; background: #f8f9fa; margin: 0; padding: 20px; }
+    .admin-container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+    /* ... resto do CSS igual ... */
+  </style>
+</head>
+<body>
+  <!-- HTML same -->
+  <script>
+    let products = [];
+    
+    async function loadProducts() {
+      try {
+        const res = await fetch('/api/products');
+        products = await res.json();
+        renderProducts();
+      } catch (e) {
+        document.getElementById('productsList').innerHTML = 'Erro carregando produtos. Verifique server.js rodando.';
+      }
+    }
+    
+    document.getElementById('addForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      try {
+        await fetch('/api/admin/add', { 
+          method: 'POST', 
+          body: formData,
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          }
+        });
+        document.getElementById('addSuccess').style.display = 'block';
+        e.target.reset();
+        setTimeout(loadProducts, 1000);
+      } catch (e) {
+        alert('Erro: ' + e.message + '. Server rodando? Token OK?');
+      }
+    };
+    
+    // resto das funções...
+    loadProducts();
+  </script>
+</body>
+</html>
