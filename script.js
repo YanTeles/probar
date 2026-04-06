@@ -10,12 +10,18 @@ let products = [];  // Carregado dinamicamente via API
 async function loadProducts() {
   try {
     const grid = document.getElementById('catalog-grid');
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gold);">🔄 Carregando produtos do servidor...</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gold);">🔄 Carregando do Firebase Firestore...</div>';
     
-    const res = await fetch('http://localhost:3000/api/products');
-    if (!res.ok) throw new Error('Erro API');
-    
-    const dbProducts = await res.json();
+    // Tenta API primeiro (backend), fallback Firebase client
+    let dbProducts;
+    try {
+      const res = await fetch('/api/products');
+      dbProducts = await res.json();
+    } catch {
+      // Firebase client-side para Netlify
+      const snapshot = await getDocs(query(collection(window.db, 'products'), orderBy('created_at', 'desc')));
+      dbProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
     
     products = dbProducts.map(item => ({
       id: item.id,
