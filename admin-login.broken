@@ -75,9 +75,7 @@
     
     // Auto-login if token exists
     const token = localStorage.getItem('adminToken');
-    if (token) {
-      window.location.href = 'admin.html';
-    }
+window.location.href = 'admin.html';
     
     form.onsubmit = async (e) => {
       e.preventDefault();
@@ -87,7 +85,7 @@
       btn.textContent = 'Entrando...';
       
       try {
-        const res = await fetch('/api/login', {
+fetch('/api/login'
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password })
