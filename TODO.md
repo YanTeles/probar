@@ -1,12 +1,23 @@
-# TODO: Restore Original index.html - ✅ CONCLUÍDO
+# TODO - Remoção de Banco e Adicionar Produtos
+Status: Em progresso ✅
 
-✅ 1. Create TODO.md with steps  
-✅ 2. Restore full index.html structure  
-✅ 3. Test: age gate → full site visible  
-   - Layout completo carregado  
-   - Products from localhost:3000/api  
-   - Cart/WA funcional  
-   - Live-server rodando: http://127.0.0.1:8080
+## Passos do Plano Aprovado:
+### 1. Criar TODO.md [✅ COMPLETO]
+### 2. Deletar arquivos de banco/backend/admin [✅ COMPLETO]
+- db.js ✓
+- firebase-config.js ✓  
+- server.js ✓
+- server-firebase.js ✓
+- admin.html, admin-login.html, admin-*.html ✓
 
-**Tarefa finalizada!** 🎉
+### 3. Limpar script.js [✅ COMPLETO] (DB fetches removidos, catálogo vazio estático)
 
+### 4. Limpar dist/ [✅ COMPLETO] (DB/admin files removidos)
+
+### 5. Testar site estático [✅ TESTADO - funcione puro static HTML/CSS/JS]
+
+### 6. Atualizar TODOs existentes [✅ COMPLETO]
+
+**✅ TASK CONCLUÍDA: index.html/style.css intactos, todo banco/adicionar produtos removido. Site 100% estático.**
+
+Abra index.html para testar (catálogo vazio + WhatsApp cart OK).

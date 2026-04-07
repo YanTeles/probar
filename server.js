@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs').promises;
 const jwt = require('jsonwebtoken');
 const admin = require('firebase-admin');
 
@@ -14,13 +14,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'tabacaria-super-secret-2024';
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-// TODO: MOVER static para FINAL após todas rotas
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api/')) return next();
-  express.static('.')(req, res, next);
-});
+app.use(express.static('.'));
 
-// Multer
+// Multer for image upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'assets/produtos/'),
   filename: (req, file, cb) => {
@@ -33,41 +29,30 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') cb(null, true);
-    else cb(new Error('Only JPG/PNG allowed'), false);
+    else cb(new Error('Only JPG/PNG'), false);
   }
 });
 
-// Firebase Admin
-let dbFirebase;
+// Firebase Admin - use renamed service account
+let db;
 try {
-  if (fs.existsSync('serviceAccountKey.json')) {
-    admin.initializeApp({
-      credential: admin.credential.cert(require('./serviceAccountKey.json'))
-    });
-    dbFirebase = admin.firestore();
-    console.log('✅ Firebase Admin OK');
-  } else {
-    console.log('⚠️ serviceAccountKey.json não encontrado - Admin limitado');
-  }
+  admin.initializeApp({
+    credential: admin.credential.cert('./probar-da4e3-firebase-adminsdk-fbsvc-b099124f5b.json')
+  });
+  db = admin.firestore();
+  console.log('✅ Firebase Admin conectado (Firestore + Storage)');
 } catch (err) {
-  console.log('❌ Firebase erro:', err.message);
-}
-
-// Fallback pool (apagar depois)
-let pool;
-try {
-  pool = require('./db.js');
-} catch (e) {
-  console.log('ℹ️ db.js não encontrado (Firebase modo)');
+  console.error('❌ Firebase Admin erro:', err.message);
+  process.exit(1);
 }
 
 // Auth middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Token required' });
+  if (!token) return res.status(401).json({ error: 'Token necessário' });
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
+    if (err) return res.status(403).json({ error: 'Token inválido' });
     req.user = user;
     next();
   });
@@ -76,21 +61,12 @@ const authenticateToken = (req, res, next) => {
 // API Routes
 app.get('/api/products', async (req, res) => {
   try {
-    let products = [];
-    if (dbFirebase) {
-      const snapshot = await dbFirebase.collection('products').orderBy('created_at', 'desc').get();
-      products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } else if (pool) {
-      const result = await pool.query(`
-        SELECT id, name, price, img_filename, category, "desc" as desc 
-        FROM products ORDER BY created_at DESC
-      `);
-      products = result.rows;
-    }
+    const snapshot = await db.collection('products').orderBy('created_at', 'desc').get();
+    const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.json(products);
   } catch (err) {
     console.error('GET /api/products:', err);
-    res.json([]);
+    res.status(500).json({ error: 'Erro Firestore' });
   }
 });
 
@@ -110,52 +86,38 @@ app.post('/api/admin/add', authenticateToken, upload.single('photo'), async (req
 
     const filename = req.file.filename;
     
-    if (dbFirebase) {
-      await dbFirebase.collection('products').add({
-        name: name.trim(),
-        price: parseFloat(price),
-        img_filename: filename,
-        category: category.trim(),
-        desc: desc?.trim() || '',
-        created_at: admin.firestore.FieldValue.serverTimestamp()
-      });
-      res.json({ success: true, message: '✅ Firebase OK' });
-    } else if (pool) {
-      const query = `
-        INSERT INTO products (name, price, img_filename, category, "desc") 
-        VALUES ($1, $2, $3, $4, $5) RETURNING *
-      `;
-      await pool.query(query, [name.trim(), parseFloat(price), filename, category.trim(), desc?.trim() || '']);
-      res.json({ success: true, message: '✅ Postgres OK' });
-    } else {
-      res.status(503).json({ error: 'Nenhum DB configurado' });
-    }
+    // Salva no Firestore
+    await db.collection('products').add({
+      name: name.trim(),
+      price: parseFloat(price),
+      img_filename: filename,
+      category: category.trim(),
+      desc: desc?.trim() || '',
+      created_at: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    res.json({ success: true, filename, message: '✅ Produto adicionado Firestore!' });
   } catch (err) {
     console.error('POST /api/admin/add:', err);
-    res.status(500).json({ error: 'Erro servidor' });
+    res.status(500).json({ error: 'Erro upload/Firestore' });
   }
 });
 
 app.delete('/api/admin/delete/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    
-    if (dbFirebase) {
-      const doc = await dbFirebase.collection('products').doc(id).get();
-      if (doc.exists) {
-        const data = doc.data();
-        if (data.img_filename) fs.unlink(`assets/produtos/${data.img_filename}`, () => {});
-        await dbFirebase.collection('products').doc(id).delete();
+    const doc = await db.collection('products').doc(id).get();
+    if (doc.exists) {
+      const data = doc.data();
+      // Delete local image
+      if (data.img_filename) {
+        await fs.unlink(`assets/produtos/${data.img_filename}`).catch(console.error);
       }
-    } else if (pool) {
-      const result = await pool.query('SELECT img_filename FROM products WHERE id = $1', [id]);
-      if (result.rows.length) {
-        const filename = result.rows[0].img_filename;
-        fs.unlink(`assets/produtos/${filename}`, () => {});
-        await pool.query('DELETE FROM products WHERE id = $1', [id]);
-      }
+      await db.collection('products').doc(id).delete();
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ error: 'Produto não encontrado' });
     }
-    res.json({ success: true });
   } catch (err) {
     console.error('DELETE /api/admin/delete:', err);
     res.status(500).json({ error: 'Erro delete' });
@@ -163,20 +125,21 @@ app.delete('/api/admin/delete/:id', authenticateToken, async (req, res) => {
 });
 
 app.get('/api/health', async (req, res) => {
-  const status = {
-    status: 'OK',
-    firebase: !!dbFirebase,
-    postgres: !!pool
-  };
-  if (dbFirebase) status.db = 'Firebase';
-  else if (pool) status.db = 'Postgres';
-  else status.db = 'None';
-  res.json(status);
+  try {
+    await db.collection('products').limit(1).get();
+    res.json({ status: 'OK', db: 'Firebase Firestore conectado', timestamp: new Date().toISOString() });
+  } catch (err) {
+    res.status(500).json({ error: 'Firestore erro', details: err.message });
+  }
 });
 
+// Health + static fallback
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+
 app.listen(PORT, () => {
-  console.log(`🚀 http://localhost:${PORT}`);
-  console.log(`📊 /api/health`);
-  console.log(`📦 /api/products`);
-  console.log(dbFirebase ? '✅ Firebase FULL' : '⚠️ Fallback/None');
+  console.log(`🚀 Server: http://localhost:${PORT}`);
+  console.log(`📊 Health: http://localhost:${PORT}/api/health`);
+  console.log(`📦 Products: http://localhost:${PORT}/api/products`);
+  console.log(`🔐 Login: POST /api/login {password: 'admin123'}`);
+  console.log('✅ Sistema add products pronto!');
 });
