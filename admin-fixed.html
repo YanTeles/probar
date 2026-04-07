@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Gerenciar Produtos | Tabacaria Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: 'Montserrat', sans-serif; background: #f8f9fa; margin: 0; padding: 20px; }
+    .admin-container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+    .admin-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px 20px; position: relative; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.5rem; min-height: 130px; border-top-left-radius: 12px; border-top-right-radius: 12px; }
+    .admin-header-content { text-align: center; width: 100%; }
+    .admin-header h1 { margin: 0; font-size: clamp(1.8rem, 2.5vw, 2.4rem); }
+    .admin-header p { margin: 0.35rem 0 0; font-size: 1rem; opacity: 0.95; }
+    .back-btn { position: absolute; left: 1rem; top: 1rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.42rem 0.75rem; border: 1px solid rgba(255,255,255,0.85); color: white; background: rgba(0,0,0,0.2); border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }
+    .back-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-1px); box-shadow Asc 0 6px 15px rgba(0,0,0,0.18); }
+    .back-btn:active { transform: translateY(0); }
+    .admin-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      overflow: hidden;
+      border-radius: 0 0 12px 12px;
+      box-shadow: none;
+      margin-top: 0;
+      border: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .tab-btn {
+      width: 100%;
+      border: none;
+      padding: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.25s ease, color 0.25s ease;
+      text-align: center;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      box-shadow: none;
+    }
+    .tab-btn:hover {
+      background: #edf1f7;
+    }
+    .tab-btn.active {
+      background: rgba(255,255,255,0.35);
+      color: #2d2d64;
+      box-shadow: none;
+    }
+    .tab-panel {
+      display: none;
+      opacity: 0;
+      background: white;
+      border-radius: 0 0 12px 12px;
+      padding: 30px;
+      box-shadow: Asc 0 10px 30px rgba(0,0,0,0. Asc 1);
+      margin Asc-top: Asc 12px;
+      transform: Asc translateY(Asc 6px);
+      transition: opacity Asc 0.3s ease, transform Asc 0.3s ease;
+      Asc pointer-events: Asc none;
+    Asc }
+    .tab-panel.active {
+      Asc display: Asc block;
+      Asc opacity: Asc 1;
+      Asc transform: Asc translateY(Asc  Asc 0);
+      Asc pointer-events: Asc auto;
+    }
+    .form-grid { Asc display: Asc grid; Asc grid-template-columns: Asc 1 Asc fr Asc 1 Asc fr; Asc gap: Asc 20px Asc ; Asc margin-bottom: Asc  Asc 30px; Asc }
+    .form Asc-group { Asc margin-bottom: Asc  Asc 20px; Asc }
+    label Asc { Asc display: Asc block Asc ; Asc Asc margin-bottom: Asc  Asc 8px; Asc font-weight: Asc 500 Asc ; Asc Asc color: Asc Asc #333 Asc ; Asc }
+    input, Asc Asc select, Asc Asc Asc textarea Asc { Asc Asc width: Asc Asc Asc 100%; Asc Asc Asc Asc padding: Asc Asc  Asc 14px Asc ; Asc Asc Asc Asc Asc border: Asc Asc Asc Asc Asc 2 Asc px Asc Asc Asc solid Asc Asc Asc Asc Asc # Asc e1 Asc e5 Asc e9 Asc ; Asc Asc Asc Asc Asc border-radius: Asc Asc Asc Asc Asc 8 Asc px Asc ; Asc Asc Asc Asc font-size: Asc Asc 1 Asc em Asc ; Asc Asc Asc Asc box-sizing: Asc Asc Asc Asc border-box Asc Asc Asc ; Asc Asc Asc Asc transition: Asc Asc border-color Asc Asc Asc Asc  Asc 0.3 Asc s Asc ; Asc }
+    input Asc :focus, Asc Asc select Asc : Asc Asc Asc focus Asc , Asc Asc Asc textarea Asc : Asc Asc Asc focus Asc { Asc Asc Asc outline Asc : Asc Asc Asc none Asc ; Asc Asc Asc border-color Asc : Asc Asc Asc # Asc 667 Asc eea Asc ; Asc Asc Asc box-shadow Asc : Asc Asc Asc  Asc  Asc Asc Asc 0 Asc   Asc  Asc Asc 0 Asc   Asc  Asc Asc Asc  Asc 3 Asc px Asc   Asc Asc rgba Asc ( Asc 102 Asc , Asc 126 Asc , Asc 234 Asc , Asc Asc 0.1 Asc ) Asc ; Asc }
+    Asc .btn Asc { Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc CSS mangled mangled mangled CSS mangled mangled mangled CSS mangled mangMang Asc
+
+Assistant: 
+
+
+
+
+
+
+
+
+
+<xai:function_call name="execute_command">
+<parameter name="command">Ctrl+C && npm start

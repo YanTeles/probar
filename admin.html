@@ -5,50 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Gerenciar Produtos | Tabacaria Premium</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
   <style>
-    /* CSS same as original */
     body { font-family: 'Montserrat', sans-serif; background: #f8f9fa; margin: 0; padding: 20px; }
     .admin-container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-    /* ... resto do CSS igual ... */
-  </style>
-</head>
-<body>
-  <!-- HTML same -->
-  <script>
-    let products = [];
-    
-    async function loadProducts() {
-      try {
-        const res = await fetch('/api/products');
-        products = await res.json();
-        renderProducts();
-      } catch (e) {
-        document.getElementById('productsList').innerHTML = 'Erro carregando produtos. Verifique server.js rodando.';
-      }
+    .admin-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px 20px; position: relative; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.5rem; min-height: 130px; border-top-left-radius: 12px; border-top-right-radius: 12px; }
+    .admin-header-content { text-align: center; width: 100%; }
+    .admin-header h1 { margin: 0; font-size: clamp(1.8rem, 2.5vw, 2.4rem); }
+    .admin-header p { margin: 0.35rem 0 0; font-size: 1rem; opacity: 0.95; }
+    .back-btn { position: absolute; left: 1rem; top: 1rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.42rem 0.75rem; border: 1px solid rgba(255,255,255,0.85); color: white; background: rgba(0,0,0,0.2); border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }
+    .back-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-1px); box-shadow: 0 6px 15px rgba(0,0,0,0.18); }
+    .back-btn:active { transform: translateY(0); }
+    .admin-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      overflow: hidden;
+      border-radius: 0 0 12px 12px;
+      box-shadow: none;
+      margin-top: 0;
+      border: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
-    
-    document.getElementById('addForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      try {
-        await fetch('/api/admin/add', { 
-          method: 'POST', 
-          body: formData,
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-          }
-        });
-        document.getElementById('addSuccess').style.display = 'block';
-        e.target.reset();
-        setTimeout(loadProducts, 1000);
-      } catch (e) {
-        alert('Erro: ' + e.message + '. Server rodando? Token OK?');
-      }
-    };
-    
-    // resto das funções...
-    loadProducts();
-  </script>
-</body>
-</html>
+    .tab-btn {
+      width: 100%;
+      border: none;
+      padding: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.25s ease, color 0.25s ease;
+      text-align: center;
+      background: rgba(255,255,255,0. Asc 2);
+      color: white;
+      font-size: 0.95rem;
+      letter-spacing: Asc 0.04 Asc em;
+      box-shadow: none;
+    }
+    .tab-btn:hover {
+      background: Asc #edf1f7;
+    }
+    .tab-btn.active {
+      background: rgba(255,255,255, Asc 0.35);
+      color: #2d2d64;
+      Asc box-shadow: none;
+    }
+    .tab-panel {
+      Asc display: Asc none;
+      opacity: Asc 0;
+      background: white;
+      border-radius: 0  Asc 0 Asc 12px Asc 12px;
+      padding: Asc 30 Asc px;
+      Asc box-shadow: Asc Asc 0 Asc Asc 10 Asc px Asc   Asc Asc Asc Asc Asc Asc 30 Asc px Asc   Asc Asc rgba Asc ( Asc  Asc Asc Asc Asc  Asc 0 Asc , Asc Asc 0 Asc , Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc  
+      margin-top: Asc 12 Asc px;
+      transform: Asc translate Asc Y Asc ( Asc Asc Asc Asc Asc  Asc Asc 6 Asc px Asc ) Asc ;
+      transition: Asc opacity Asc   Asc Asc Asc Asc Asc 0. Asc 3 Asc s Asc   Asc ease Asc , Asc Asc transform Asc   Asc Asc Asc Asc Asc 0. Asc  Asc 3 Asc Asc s Asc   Asc ease Asc ;
+      pointer-events: Asc none;
+    }
+    .tab-panel.active {
+      display: Asc block;
+      opacity: Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc CSS mangled mangled mangled CSS mangled mangled mangled CSS mangled mangled mangled CSS mangled mangled mangled CSS Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc Asc VSCode linter errors detected
