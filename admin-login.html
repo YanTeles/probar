@@ -73,11 +73,12 @@
     const errorMsg = document.getElementById('errorMsg');
     const successMsg = document.getElementById('successMsg');
     
-    // Auto-login if token exists
-    const token = localStorage.getItem('adminToken');
-    if (token) {
-      window.location.href = 'admin.html';
-    }
+    // Auto-login if token exists (DEBUG - disable for test)
+    // const token = localStorage.getItem('adminToken');
+    // if (token) {
+    //   window.location.href = 'admin.html';
+    // }
+
     
     form.onsubmit = async (e) => {
       e.preventDefault();
