@@ -1,5 +1,4 @@
-// Firebase config fornecido pelo usuário (client-side)
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyBCcC-VLZtGu1HcKmM6uvU41Dza--k0ki0",
   authDomain: "probar-da4e3.firebaseapp.com",
   projectId: "probar-da4e3",
@@ -8,5 +7,3 @@ const firebaseConfig = {
   appId: "1:432043671272:web:cfbee03006fd801668535d",
   measurementId: "G-4BFGM73ERE"
 };
-
-export { firebaseConfig };

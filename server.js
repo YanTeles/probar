@@ -14,8 +14,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'tabacaria-super-secret-2024';
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-// static FINAL - APÓS rotas API
-app.use(express.static('.'));
+// TODO: MOVER static para FINAL após todas rotas
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) return next();
+  express.static('.')(req, res, next);
+});
 
 // Multer
 const storage = multer.diskStorage({
