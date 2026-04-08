@@ -86,8 +86,8 @@ body {
 
 /* ===== SCROLL REVEAL — base state ===== */
 .reveal {
-  opacity: 0;
-  transform: translateY(40px);
+  opacity: 1;
+  transform: translateY(0);
   transition:
     opacity 0.75s var(--ease-out-expo),
     transform 0.75s var(--ease-out-expo);
@@ -97,8 +97,8 @@ body {
   transform: translateY(0);
 }
 .reveal-left {
-  opacity: 0;
-  transform: translateX(-50px);
+  opacity: 1;
+  transform: translateX(0);
   transition:
     opacity 0.8s var(--ease-out-expo),
     transform 0.8s var(--ease-out-expo);
@@ -108,8 +108,8 @@ body {
   transform: translateX(0);
 }
 .reveal-right {
-  opacity: 0;
-  transform: translateX(50px);
+  opacity: 1;
+  transform: translateX(0);
   transition:
     opacity 0.8s var(--ease-out-expo),
     transform 0.8s var(--ease-out-expo);
@@ -119,8 +119,8 @@ body {
   transform: translateX(0);
 }
 .reveal-scale {
-  opacity: 0;
-  transform: scale(0.88);
+  opacity: 1;
+  transform: scale(1);
   transition:
     opacity 0.7s var(--ease-out-expo),
     transform 0.7s var(--ease-out-expo);
@@ -387,6 +387,9 @@ a,
 }
 #main-site.visible {
   display: block;
+}
+#main-site.hidden {
+  display: none !important;
 }
 
 /* ===== HEADER ===== */

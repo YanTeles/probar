@@ -393,22 +393,16 @@
   </div>
 
   <!-- Admin FAB -->
-<button class="admin-fab" title="🔐 Admin" onclick="toggleAdminModal()">🔧</button>
+  <button class="admin-fab" title="🔐 Admin" onclick="toggleAdminModal()">🔧</button>
 
   <!-- Cart FAB -->
   <button class="cart-fab" id="cart-fab" onclick="toggleCart()">
     🛒 <span class="cart-fab-count" id="cart-fab-count">0</span>
   </button>
+</div>
 
 <!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-  import { getFirestore, collection, getDocs, orderBy, query, where } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-  import { firebaseConfig } from './firebase-config.js';
-  
-  window.firebaseApp = initializeApp(firebaseConfig);
-  window.db = getFirestore(window.firebaseApp);
-</script>
+<!-- Firebase removido -->
 <script src="script.js"></script>
 </body>
 </html>
