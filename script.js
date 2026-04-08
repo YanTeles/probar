@@ -69,6 +69,10 @@ function toggleAdminModal() {
     localStorage.setItem('adminLoggedIn', 'true');
   }
 
+  if (document.getElementById('adminModal')) {
+    return;
+  }
+
   const modal = document.createElement('div');
   modal.id = 'adminModal';
   modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem;';
@@ -78,7 +82,7 @@ function toggleAdminModal() {
         <h2 style="margin:0;font-size:1.8rem;">🔧 Painel Admin</h2>
         <div>
           <button onclick="logoutAdmin()" style="background:#e55;color:white;border:none;border-radius:8px;padding:0.5rem 1rem;margin-left:0.5rem;cursor:pointer;font-size:1rem;">Sair</button>
-          <button onclick="document.getElementById('adminModal').remove()" style="background:none;border:none;color:#ccc;font-size:1.8rem;cursor:pointer;padding:0.25rem;">×</button>
+          <button onclick="closeAdminModal()" style="background:none;border:none;color:#ccc;font-size:1.8rem;cursor:pointer;padding:0.25rem;">×</button>
         </div>
       </div>
       
@@ -165,10 +169,17 @@ function deleteProduct(id) {
   renderProducts();
 }
 
-function logoutAdmin() {
-  localStorage.removeItem('adminLoggedIn');
+function closeAdminModal() {
+  const modal = document.getElementById('adminModal');
+  if (modal) {
+    modal.remove();
+  }
   adminLoggedIn = false;
-  document.getElementById('adminModal').remove();
+  localStorage.removeItem('adminLoggedIn');
+}
+
+function logoutAdmin() {
+  closeAdminModal();
 }
 
 function renderCatalog(products = adminProducts) {
