@@ -77,11 +77,26 @@ function toggleAdminModal() {
   modal.id = 'adminModal';
   modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem;';
   modal.innerHTML = `
-    <div style="background:#1a1a1a;color:white;padding:2.5rem;border-radius:16px;max-width:600px;width:95%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,0.8);">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;border-bottom:1px solid #444;padding-bottom:1rem;">
+    <style>
+      #adminModal .admin-modal-box { width: min(600px, 100%); }
+      #adminModal .admin-modal-box form .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      #adminModal .admin-modal-box form .field-row input,
+      #adminModal .admin-modal-box form .field-row select { width: 100%; }
+      @media (max-width: 640px) {
+        #adminModal .admin-modal-box { padding: 1.5rem; }
+        #adminModal .admin-modal-box .modal-header { flex-direction: column; align-items: stretch; gap: 1rem; }
+        #adminModal .admin-modal-box form .field-row { grid-template-columns: 1fr; }
+        #adminModal .admin-modal-box form input,
+        #adminModal .admin-modal-box form select,
+        #adminModal .admin-modal-box form textarea,
+        #adminModal .admin-modal-box form button { width: 100%; }
+      }
+    </style>
+    <div class="admin-modal-box" style="background:#1a1a1a;color:white;padding:2.5rem;border-radius:16px;max-width:600px;width:95%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,0.8);">
+      <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;border-bottom:1px solid #444;padding-bottom:1rem;">
         <h2 style="margin:0;font-size:1.8rem;">🔧 Painel Admin</h2>
-        <div>
-          <button onclick="logoutAdmin()" style="background:#e55;color:white;border:none;border-radius:8px;padding:0.5rem 1rem;margin-left:0.5rem;cursor:pointer;font-size:1rem;">Sair</button>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">
+          <button onclick="logoutAdmin()" style="background:#e55;color:white;border:none;border-radius:8px;padding:0.5rem 1rem;cursor:pointer;font-size:1rem;">Sair</button>
           <button onclick="closeAdminModal()" style="background:none;border:none;color:#ccc;font-size:1.8rem;cursor:pointer;padding:0.25rem;">×</button>
         </div>
       </div>
@@ -90,10 +105,10 @@ function toggleAdminModal() {
       <div style="background:#2a2a2a;padding:1.5rem;border-radius:12px;margin-bottom:2rem;">
         <h3 style="margin:0 0 1rem 0;color:#48e011;">➕ Novo Produto</h3>
         <form id="addForm" style="display:grid;gap:1rem;">
-          <input id="name" placeholder="Nome do produto" required style="padding:1rem;border:1px solid #555;border-radius:8px;background:#333;color:white;font-size:1rem;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-            <input id="price" type="number" step="0.01" placeholder="Preço R$" required style="padding:1rem;border:1px solid #555;border-radius:8px;background:#333;color:white;">
-            <select id="category" style="padding:1rem;border:1px solid #555;border-radius:8px;background:#333;color:white;">
+          <input id="name" placeholder="Nome do produto" required style="padding:1rem;border:1px solid #555;border-radius:8px;background:#333;color:white;font-size:1rem;min-width:0;">
+          <div class="field-row">
+            <input id="price" type="number" step="0.01" placeholder="Preço R$" required style="padding:1rem;border:1px solid #555;border-radius:8px;background:#333;color:white;min-width:0;">
+            <select id="category" style="padding:1rem;border:1px solid #555;border-radius:8px;background:#333;color:white;min-width:0;">
               <option value="charuto">Charuto</option>
               <option value="narguilé">Narguilé</option>
               <option value="cigarro">Cigarro</option>
