@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.min.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
@@ -31,24 +31,269 @@
 </div>
 
 <div id="main-site">
-  <!-- Todo conteúdo igual ao index.html original, mas com:
-    - href="style.min.css"
-    - src="script.min.js"
-    - Firebase CDN + firebase-config.js mantido
-    - Comentário production no topo
-  -->
-  <!-- [Conteúdo completo do index.html aqui - igual ao lido, só mudando links para .min e paths relativos] -->
-  <!-- Para brevidade, usando CDATA com conteúdo completo otimizado -->
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <a href="#" class="logo reveal">
+        <img src="assets/logo.jpg" alt="Logo" class="logo-img" />
+        <div class="logo-text">
+          <div class="logo-name">Premium</div>
+          <span>Tabacaria</span>
+        </div>
+      </a>
+      <nav class="main-nav">
+        <div class="nav-item">
+          <a href="#catalogo">Produtos</a>
+        </div>
+        <div class="nav-item">
+          <button onclick="toggleNavItem('localizacao-drop')">Localização <span class="nav-chevron">▾</span></button>
+        </div>
+        <div class="nav-item">
+          <button onclick="toggleNavItem('redes-drop')">Redes Sociais <span class="nav-chevron">▾</span></button>
+        </div>
+        <div class="nav-item">
+          <button onclick="toggleNavItem('faq-drop')">FAQ <span class="nav-chevron">▾</span></button>
+        </div>
+      </nav>
+      <div class="header-right">
+        <button class="icon-btn header-cart-icon" onclick="toggleCart()" id="cart-trigger">
+          🛒 <span class="badge" id="cart-count">0</span>
+        </button>
+        <button class="hamburger" id="hamburger" onclick="toggleNav()">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
 
-  <!-- Firebase SDK Production -->
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-  import { getFirestore, collection, getDocs, orderBy, query, where } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-  import { firebaseConfig } from './firebase-config.js';
+    <!-- Simple drops -->
+    <div class="simple-drop" id="localizacao-drop">
+      <a href="#localizacao">Ver Mapa</a>
+      <a href="https://goo.gl/maps/abc">Como Chegar</a>
+    </div>
+    <div class="simple-drop" id="redes-drop">
+      <a href="https://instagram.com/tabacariapremium">Instagram</a>
+      <a href="https://facebook.com/tabacariapremium">Facebook</a>
+    </div>
+    <div class="simple-drop" id="faq-drop">
+      <a href="#faq">Perguntas Frequentes</a>
+      <a href="#contato">Contato</a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero reveal">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-particles" id="hero-particles"></div>
+    <div class="hero-content">
+      <div class="hero-logo">Tabacaria Premium</div>
+      <div class="hero-subtitle">Coronel Fabriciano · MG</div>
+      <p>Seleção premium de charutos cubanos, dominicanos e brasileiros. Tabacos importados e acessórios de alta qualidade.</p>
+      <div class="hero-btns">
+        <button class="hero-btn" onclick="document.getElementById('catalogo').scrollIntoView({behavior:'smooth'})">Ver Produtos</button>
+        <button class="hero-btn secondary" onclick="document.getElementById('localizacao').scrollIntoView({behavior:'smooth'})">Onde Estamos</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Catalog Section -->
+  <section id="catalogo">
+    <div style="max-width:1200px;margin:0 auto;width:100%;">
+      <h2 class="section-title">Produtos <em>Premium</em></h2>
+      <div class="decor-line"></div>
+
+      <!-- Filters -->
+      <div class="category-filter">
+        <button class="filter-btn active">Todos</button>
+        <button class="filter-btn">Charutos</button>
+        <button class="filter-btn">Narguilé</button>
+        <button class="filter-btn">Cigarro</button>
+        <button class="filter-btn">Acessórios</button>
+      </div>
+
+      <!-- Grid de Produtos -->
+      <div class="products-grid" id="catalog-grid"></div>
+    </div>
+  </section>
+
+  <!-- Location -->
+  <section id="localizacao" style="background:var(--dark2);">
+    <div style="max-width:1200px;margin:0 auto;">
+      <h2 class="section-title">Visite-nos <em>hoje</em></h2>
+      <div class="decor-line"></div>
+      
+      <div class="contact-grid">
+        <div>
+          <h3>📍 Localização</h3>
+          <p><strong>R. X, 123 - Centro</strong></p>
+          <p>Coronel Fabriciano, MG</p>
+          <p style="margin-top:1rem;"><span class="section-title" style="font-size:1.2rem;">(31) 9000-0000</span></p>
+          <p><em>WhatsApp</em></p>
+        </div>
+        <div>
+          <h3>🕒 Horário de Funcionamento</h3>
+          <p><strong>Segunda - Sexta</strong><br/>9h - 18h</p>
+          <p><strong>Sábado</strong><br/>9h - 12h</p>
+          <p><strong>Domingo</strong><br/>Fechado</p>
+          <div style="margin-top:1rem;padding:1rem;background:#48e01120;border-radius:8px;color:var(--accent);font-weight:600;">
+            ● Aberto agora
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div style="max-width:800px;margin:0 auto;">
+      <h2 class="section-title">Dúvidas <em>Comuns</em></h2>
+      <div class="decor-line"></div>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            Precisa de CPF para compra? <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-a-text">Sim, para maior de 18 anos. É lei federal para controle de venda de tabaco.</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            Vocês entregam? <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-a-text">Sim! Pedidos pelo WhatsApp com entrega em Coronel Fabriciano e região.</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+            Posso pagar no cartão? <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-a-text">À vista no PIX ou dinheiro. Cartão só na loja física.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="background:var(--dark2);border-top:1px solid #5b7fa611;padding:3rem 1rem;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div class="footer-grid">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--accent);margin-bottom:1rem;font-weight:600;">Tabacaria Premium</div>
+          <p style="color:var(--text-muted);line-height:1.8;">A melhor seleção de charutos e acessórios em Coronel Fabriciano. Experiência exclusiva para apreciadores.</p>
+        </div>
+        <div>
+          <h3 style="font-family:'Playfair Display',serif;color:var(--cream);margin-bottom:1rem;">Contato</h3>
+          <a href="#localizacao" style="display:block;color:var(--text-muted);text-decoration:none;margin-bottom:0.5rem;">📍 Localização</a>
+          <a href="https://wa.me/5531900000000" style="display:block;color:var(--text-muted);text-decoration:none;margin-bottom:0.5rem;">💬 WhatsApp</a>
+          <a href="#faq" style="display:block;color:var(--text-muted);text-decoration:none;">❓ FAQ</a>
+        </div>
+      </div>
+      <div style="border-top:1px solid #5b7fa611;padding-top:2rem;margin-top:2rem;text-align:center;color:var(--text-muted);font-size:0.9rem;">
+        <p>&copy; 2024 Tabacaria Premium. Todos os direitos reservados.</p>
+        <p style="margin-top:0.5rem;"><em>* Venda de tabaco restrita a maiores de 18 anos.</em></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Admin FAB -->
+  <button class="admin-fab" title="🔐 Admin" onclick="toggleAdminModal()" style="position:fixed;bottom:100px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--dark);border:none;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 12px rgba(72,224,17,0.3);z-index:100;">🔧</button>
+
+  <!-- Cart FAB -->
+  <button class="cart-fab" id="cart-fab" onclick="toggleCart()" style="position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--dark);border:none;font-size:1.2rem;cursor:pointer;box-shadow:0 4px 12px rgba(72,224,17,0.3);z-index:100;display:flex;align-items:center;justify-content:center;">
+    🛒 <span class="cart-fab-count" id="cart-fab-count" style="position:absolute;top:-5px;right:-5px;background:#ff6b6b;color:white;border-radius:50%;width:20px;height:20px;font-size:0.7rem;display:flex;align-items:center;justify-content:center;">0</span>
+  </button>
+</div>
+
+<script>
+// Função confirmAge simples
+function confirmAge(isAdult) {
+  const gate = document.getElementById('age-gate');
+  const mainSite = document.getElementById('main-site');
+  const warning = document.getElementById('age-warning');
   
-  window.firebaseApp = initializeApp(firebaseConfig);
-  window.db = getFirestore(window.firebaseApp);
+  if (isAdult) {
+    gate.style.display = 'none';
+    mainSite.style.display = 'block';
+    localStorage.setItem('ageVerified', 'true');
+  } else {
+    gate.style.display = 'none';
+    warning.style.display = 'flex';
+  }
+}
+
+// Renderizar produtos
+function renderProducts() {
+  const grid = document.getElementById('catalog-grid');
+  if (!grid) return;
+  
+  const products = [
+    { name: 'Charuto Cubano Premium', category: 'charuto', price: 85.00, emoji: '🚬' },
+    { name: 'Narguilé Turco 32cm', category: 'narguilé', price: 120.00, emoji: '🏺' },
+    { name: 'Cigarro Import Premium', category: 'cigarro', price: 35.00, emoji: '🚬' },
+    { name: 'Acessório - Cinzeiro', category: 'acessório', price: 25.00, emoji: '🪨' },
+    { name: 'Carvão Coco Premium', category: 'acessório', price: 18.00, emoji: '⚫' },
+    { name: 'Charuto Dominicano', category: 'charuto', price: 65.00, emoji: '🚬' },
+    { name: 'Narguilé Alumínio', category: 'narguilé', price: 95.00, emoji: '🏺' },
+    { name: 'Tabaco Premium', category: 'cigarro', price: 28.00, emoji: '🚬' }
+  ];
+  
+  let html = '';
+  products.forEach(p => {
+    html += `
+      <div class="product-card">
+        <div class="product-img">
+          <span style="font-size:80px;">${p.emoji}</span>
+        </div>
+        <div class="product-name">
+          <h3>${p.name}</h3>
+          <p>${p.category}</p>
+        </div>
+        <div class="product-price">
+          <span class="price-text">R$</span>
+          <span class="price-value">${p.price.toFixed(2)}</span>
+        </div>
+      </div>
+    `;
+  });
+  
+  grid.innerHTML = html;
+}
+
+// Inicializar ao carregar
+window.addEventListener('load', function() {
+  // Verificar verificação de idade
+  if (localStorage.getItem('ageVerified') === 'true') {
+    document.getElementById('age-gate').style.display = 'none';
+    document.getElementById('main-site').style.display = 'block';
+  }
+  
+  // Sempre renderizar produtos em demo
+  renderProducts();
+});
+
+// Funções placeholder
+function filterProducts(cat, btn) {
+  if (btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+}
+
+function toggleCart() { alert('Carrinho'); }
+function toggleNav() { alert('Menu'); }
+function toggleNavItem(id) { 
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+function toggleAdminModal() { 
+  const pass = prompt('Senha Admin:');
+  if (pass === 'admin123') alert('Admin OK');
+  else alert('Erro');
+}
 </script>
-<script src="script.min.js"></script>
 </body>
 </html>]]>
