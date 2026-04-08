@@ -41,6 +41,23 @@ function closeCheckout() {
 let adminProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]');
 let adminLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
 
+// Default products if none in localStorage
+if (adminProducts.length === 0) {
+  adminProducts = [
+    { id: 1, name: 'Aleda Ouro', price: 25.00, category: 'charuto', img: 'assets/produtos/aledaOuro.jpeg', desc: 'Charuto premium cubano' },
+    { id: 2, name: 'Aleda LTD', price: 30.00, category: 'charuto', img: 'assets/produtos/aleda-ltd.jpeg', desc: 'Edição limitada' },
+    { id: 3, name: 'Blunt King Brown', price: 15.00, category: 'cigarro', img: 'assets/produtos/bb-brown-1.jpeg', desc: 'Cigarro artesanal' },
+    { id: 4, name: 'Cinzeiro Tonabe', price: 20.00, category: 'acessório', img: 'assets/produtos/cinzeiro-tonabe.jpeg', desc: 'Cinzeiro de cerâmica' },
+    { id: 5, name: 'Piteira BB Premium', price: 12.00, category: 'acessório', img: 'assets/produtos/piteira-bb-premium.jpeg', desc: 'Piteira para blunt' },
+    { id: 6, name: 'Zomo Black', price: 18.00, category: 'narguilé', img: 'assets/produtos/zomo-black.jpeg', desc: 'Tabaco para narguilé' },
+    { id: 7, name: 'King Herbal Wrap', price: 8.00, category: 'cigarro', img: 'assets/produtos/kingHerbalWrap.jpeg', desc: 'Wrap herbal' },
+    { id: 8, name: 'Puff Life', price: 10.00, category: 'cigarro', img: 'assets/produtos/puff-life.jpeg', desc: 'Cigarro premium' },
+    { id: 9, name: 'Tesoura Tonabe', price: 15.00, category: 'acessório', img: 'assets/produtos/tesoura-tonabe.jpeg', desc: 'Tesoura para tabaco' },
+    { id: 10, name: 'Rolling Machine', price: 50.00, category: 'acessório', img: 'assets/produtos/rollingMachine.jpeg', desc: 'Máquina de enrolar' }
+  ];
+  localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
+}
+
 function toggleAdminModal() {
   if (!adminLoggedIn) {
     const pass = prompt('Senha Admin:', '');
@@ -154,6 +171,51 @@ function logoutAdmin() {
   document.getElementById('adminModal').remove();
 }
 
+function renderCatalog(products = adminProducts) {
+  const grid = document.getElementById('catalog-grid');
+  if (!grid) return;
+  
+  if (products.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#888;">Nenhum produto encontrado.</div>';
+    return;
+  }
+  
+  grid.innerHTML = products.map(p => `
+    <div class="product-card" onclick="toggleProduct(${p.id})">
+      <div class="product-img-wrap">
+        <img class="product-img" src="${p.img}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x300/333/fff?text=Produto'">
+      </div>
+      <div class="product-body">
+        <div class="product-cat">${p.category}</div>
+        <div class="product-name">${p.name}</div>
+        <div class="product-footer">
+          <div class="product-price">R$ ${p.price.toFixed(2).replace('.', ',')}</div>
+          <button class="add-btn">+</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  
+  animateCards();
+}
+
+function animateCards() {
+  // Simple animation for product cards
+  const cards = document.querySelectorAll('.product-card');
+  cards.forEach((card, index) => {
+    card.style.animationDelay = `${index * 0.1}s`;
+    card.classList.add('card-visible');
+    card.classList.add('reveal');
+  });
+}
+
+function toggleProduct(id) {
+  const product = adminProducts.find(p => p.id === id);
+  if (product) {
+    alert(`Produto: ${product.name}\nPreço: R$ ${product.price.toFixed(2)}\nDescrição: ${product.desc}`);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   // Auto-show main-site after 1 second para debug
   setTimeout(() => {
@@ -168,47 +230,30 @@ document.addEventListener('DOMContentLoaded', function() {
   // Catálogo dinâmico do localStorage admin
   renderCatalog();
   
-  function renderCatalog() {
-    const grid = document.getElementById('catalog-grid');
-    if (!grid) return;
-    
-    if (adminProducts.length === 0) {
-      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#888;">Nenhum produto. Use FAB 🔧 para adicionar! 📱</div>';
-      return;
-    }
-    
-    grid.innerHTML = adminProducts.map(p => `
-      <div class="product-card" onclick="toggleProduct(${p.id})">
-        <div class="product-img-wrap">
-          <img class="product-img" src="${p.img}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x300/333/fff?text=Produto'">
-        </div>
-        <div class="product-body">
-          <div class="product-cat">${p.category}</div>
-          <div class="product-name">${p.name}</div>
-          <div class="product-footer">
-            <div class="product-price">R$ ${p.price.toFixed(2).replace('.', ',')}</div>
-            <button class="add-btn">+</button>
-          </div>
-        </div>
-      </div>
-    `).join('');
-    
-    animateCards();
-  }
-  
-  // Status loja
-  const statusEls = document.querySelectorAll('#store-status, #store-status2');
-  statusEls.forEach(el => {
-    el.innerHTML = '<span class="status-badge status-open">● Aberto agora</span>';
-  });
-  
   // Funções básicas sem erro
   window.toggleCart = toggleCart;
   window.openCheckout = () => alert('Checkout');
   window.sendToWhatsApp = () => window.open('https://wa.me/5531900000000');
   window.toggleNav = () => {};
-  window.filterProducts = () => {};
-  window.handleSearch = () => {};
+  window.filterProducts = (category, btn) => {
+    // Update active filter button
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    
+    let filtered = adminProducts;
+    if (category !== 'all') {
+      filtered = adminProducts.filter(p => p.category === category);
+    }
+    renderCatalog(filtered);
+  };
+  window.handleSearch = (query) => {
+    const filtered = adminProducts.filter(p => 
+      p.name.toLowerCase().includes(query.toLowerCase()) ||
+      p.category.toLowerCase().includes(query.toLowerCase()) ||
+      p.desc.toLowerCase().includes(query.toLowerCase())
+    );
+    renderCatalog(filtered);
+  };
   window.loadProducts = () => {};
   window.loadMoreProducts = () => {};
   window.toggleFaq = (btn) => btn.classList.toggle('active');
