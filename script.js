@@ -24,24 +24,173 @@ function toggleCart() {
   const panel = document.getElementById('cart-panel');
   const overlay = document.getElementById('cart-overlay');
   if (panel) {
-    panel.classList.toggle('active');
+    panel.classList.toggle('open');
   }
   if (overlay) {
-    overlay.classList.toggle('active');
+    overlay.classList.toggle('open');
   }
 }
 
 function closeCheckout() {
   const modal = document.getElementById('checkout-modal');
   if (modal) {
-    modal.style.display = 'none';
+    modal.classList.remove('open');
   }
+  document.body.style.overflow = '';
 }
 
 let adminProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]');
+
+function openCheckout() {
+  if (cartItems.length === 0) {
+    alert('Seu carrinho está vazio. Adicione produtos antes de finalizar.');
+    return;
+  }
+
+  const panel = document.getElementById('cart-panel');
+  if (panel && panel.classList.contains('open')) {
+    toggleCart();
+  }
+
+  renderCheckoutSummary();
+  const modal = document.getElementById('checkout-modal');
+  if (modal) {
+    modal.classList.add('open');
+  }
+  document.body.style.overflow = 'hidden';
+}
+
+function sendToWhatsApp() {
+  if (cartItems.length === 0) {
+    alert('Seu carrinho está vazio. Adicione produtos antes de enviar.');
+    return;
+  }
+
+  const nome = document.getElementById('field-nome').value.trim();
+  const cpf = document.getElementById('field-cpf').value.trim();
+  const telefone = document.getElementById('field-telefone').value.trim();
+  const endereco = document.getElementById('field-endereco').value.trim();
+
+  const storeNumber = '5531985270034';
+  const itemsText = cartItems.map(item => `- ${item.quantity}x ${item.name} (R$ ${item.price.toFixed(2).replace('.', ',')})`).join('\n');
+  const totalText = formatBRL(getCartTotal());
+
+  let message = `Olá, tenho interesse nos seguintes produtos:\n\n${itemsText}\n\nTotal: ${totalText}`;
+
+  if (nome) message += `\n\nNome: ${nome}`;
+  if (cpf) message += `\nCPF: ${cpf}`;
+  if (telefone) message += `\nTelefone: ${telefone}`;
+  if (endereco) message += `\nEndereço: ${endereco}`;
+
+  const url = `https://wa.me/${storeNumber}?text=${encodeURIComponent(message)}`;
+  window.open(url, '_blank');
+}
 let adminLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
 
 // Default products if none in localStorage
+let cartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
+
+function saveCart() {
+  localStorage.setItem('cartItems', JSON.stringify(cartItems));
+}
+
+function formatBRL(value) {
+  return `R$ ${value.toFixed(2).replace('.', ',')}`;
+}
+
+function getCartCount() {
+  return cartItems.reduce((sum, item) => sum + item.quantity, 0);
+}
+
+function getCartTotal() {
+  return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+}
+
+function renderCart() {
+  const list = document.getElementById('cart-items-list');
+  const badge = document.getElementById('hci-badge');
+  const fabCount = document.getElementById('cart-fab-count');
+  const totalPrice = document.getElementById('cart-total-price');
+
+  if (badge) {
+    badge.textContent = getCartCount();
+  }
+  if (fabCount) {
+    fabCount.textContent = getCartCount();
+  }
+  if (totalPrice) {
+    totalPrice.textContent = formatBRL(getCartTotal());
+  }
+  if (!list) return;
+
+  if (cartItems.length === 0) {
+    list.innerHTML = '<div class="cart-empty">Seu carrinho está vazio. Clique em um produto para adicioná-lo.</div>';
+    return;
+  }
+
+  list.innerHTML = cartItems.map(item => `
+    <div class="cart-item">
+      <div>
+        <strong>${item.name}</strong>
+        <div class="cart-item-meta">${item.quantity}x • ${formatBRL(item.price)}</div>
+      </div>
+      <div class="cart-item-actions">
+        <button class="cart-qty-btn" onclick="changeCartQuantity(${item.id}, -1)">−</button>
+        <button class="cart-qty-btn" onclick="changeCartQuantity(${item.id}, 1)">+</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function changeCartQuantity(id, delta) {
+  const item = cartItems.find(item => item.id === id);
+  if (!item) return;
+  item.quantity += delta;
+  if (item.quantity <= 0) {
+    cartItems = cartItems.filter(item => item.id !== id);
+  }
+  saveCart();
+  renderCart();
+}
+
+function addToCart(product) {
+  const existing = cartItems.find(item => item.id === product.id);
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cartItems.push({ ...product, quantity: 1 });
+  }
+  saveCart();
+  renderCart();
+}
+
+function removeCartItem(id) {
+  cartItems = cartItems.filter(item => item.id !== id);
+  saveCart();
+  renderCart();
+}
+
+function renderCheckoutSummary() {
+  const summary = document.getElementById('order-summary');
+  if (!summary) return;
+  if (cartItems.length === 0) {
+    summary.innerHTML = '<p>Adicione produtos ao carrinho antes de finalizar.</p>';
+    return;
+  }
+
+  summary.innerHTML = cartItems.map(item => `
+    <div class="summary-line">
+      <span>${item.quantity}x ${item.name}</span>
+      <strong>${formatBRL(item.price * item.quantity)}</strong>
+    </div>
+  `).join('') + `
+    <div class="summary-total">
+      <span>Total</span>
+      <strong>${formatBRL(getCartTotal())}</strong>
+    </div>
+  `;
+}
+
 if (adminProducts.length === 0) {
   adminProducts = [
     { id: 1, name: 'Aleda Ouro', price: 25.00, category: 'charuto', img: 'assets/produtos/aledaOuro.jpeg', desc: 'Charuto premium cubano' },
@@ -75,61 +224,109 @@ function toggleAdminModal() {
 
   const modal = document.createElement('div');
   modal.id = 'adminModal';
-  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem;overflow:auto;';
   modal.innerHTML = `
     <style>
-      #adminModal .admin-modal-box { width: min(600px, 100%); }
-      #adminModal .admin-modal-box form .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-      #adminModal .admin-modal-box form .field-row input,
-      #adminModal .admin-modal-box form .field-row select { width: 100%; }
-      @media (max-width: 640px) {
-        #adminModal .admin-modal-box { padding: 1.5rem; }
-        #adminModal .admin-modal-box .modal-header { flex-direction: column; align-items: stretch; gap: 1rem; }
-        #adminModal .admin-modal-box form .field-row { grid-template-columns: 1fr; }
-        #adminModal .admin-modal-box form input,
-        #adminModal .admin-modal-box form select,
-        #adminModal .admin-modal-box form textarea,
-        #adminModal .admin-modal-box form button { width: 100%; }
+      #adminModal .admin-modal-box { width: min(680px, 100%); max-height: 92vh; overflow: auto; }
+      #adminModal .admin-panel-header { display:flex;justify-content:space-between;gap:1rem;align-items:center;margin-bottom:1.75rem; }
+      #adminModal .admin-panel-header h2 { margin:0; color:#f8fafc; font-size:1.95rem; }
+      #adminModal .admin-panel-header p { margin:0; color:#94a3b8; font-size:0.95rem; }
+      #adminModal .admin-panel-actions { display:flex; gap:0.75rem; flex-wrap:wrap; justify-content:flex-end; }
+      #adminModal .admin-panel-actions button { border:none; border-radius:0.85rem; padding:0.75rem 1rem; font-weight:700; cursor:pointer; }
+      #adminModal .admin-panel-actions .logout-btn { background:#ef4444; color:white; }
+      #adminModal .admin-panel-actions .close-btn { background:rgba(255,255,255,0.08); color:#e2e8f0; font-size:1.2rem; width:42px; height:42px; }
+      #adminModal .admin-panel-block { border-radius:1.75rem; background:#0d1117; border:1px solid rgba(255,255,255,0.09); padding:1.75rem; box-shadow:0 22px 70px rgba(0,0,0,0.3); }
+      #adminModal .admin-panel-block + .admin-panel-block { margin-top:1.5rem; }
+      #adminModal .admin-panel-block h3 { margin:0 0 1rem 0; color:#10b981; font-size:1.25rem; }
+      #adminModal .admin-panel-block form { display:grid; gap:1rem; }
+      #adminModal .admin-panel-block .field-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+      #adminModal .admin-input,
+      #adminModal .admin-select,
+      #adminModal .admin-textarea { width:100%; border-radius:1rem; border:1px solid rgba(255,255,255,0.08); background:#111827; color:#e2e8f0; padding:1rem 1.1rem; font-size:0.96rem; outline:none; }
+      #adminModal .admin-input:focus,
+      #adminModal .admin-select:focus,
+      #adminModal .admin-textarea:focus { border-color:#10b981; box-shadow:0 0 0 4px rgba(16,185,129,0.14); }
+      #adminModal .upload-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; border:1px dashed rgba(16,185,129,0.35); padding:1rem 1rem; border-radius:1rem; background:rgba(16,185,129,0.05); color:#cbd5e1; }
+      #adminModal .upload-row label { cursor:pointer; color:#10b981; font-weight:700; }
+      #adminModal .preview-box { margin-top:1rem; min-height:12rem; border:1px dashed rgba(255,255,255,0.12); border-radius:1.2rem; background:#090b10; display:flex; align-items:center; justify-content:center; color:#64748b; overflow:hidden; }
+      #adminModal .preview-box img { width:100%; height:100%; object-fit:cover; }
+      #adminModal .admin-submit { width:100%; border-radius:1.5rem; border:none; background:#0f766e; color:#f8fafc; font-weight:800; padding:1.15rem 1.35rem; font-size:1.03rem; display:inline-flex; align-items:center; justify-content:center; gap:0.75rem; transition:transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease; box-shadow:0 18px 32px rgba(16,185,129,0.18); }
+      #adminModal .admin-submit:hover { background:#10b981; transform:scale(1.02); box-shadow:0 24px 40px rgba(16,185,129,0.32); }
+      #adminModal .products-list-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; }
+      #adminModal .products-list-header .badge { display:inline-flex; align-items:center; gap:0.5rem; padding:0.65rem 0.95rem; border-radius:999px; background:rgba(212,175,55,0.14); border:1px solid rgba(212,175,55,0.22); color:#f8e6ad; font-size:0.85rem; }
+      #adminModal .products-grid { display:grid; gap:1rem; max-height:330px; overflow:auto; }
+      #adminModal .product-row { display:grid; grid-template-columns:72px 1fr auto; gap:1rem; align-items:center; padding:1rem; border-radius:1.25rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); }
+      #adminModal .product-row img { width:72px; height:72px; object-fit:cover; border-radius:1rem; }
+      #adminModal .product-info h4 { margin:0; color:white; font-size:1rem; }
+      #adminModal .product-info p { margin:0.45rem 0 0; color:#94a3b8; font-size:0.9rem; line-height:1.4; }
+      #adminModal .product-meta { display:flex; flex-wrap:wrap; gap:0.5rem; color:#a3e635; font-size:0.85rem; }
+      #adminModal .product-actions { display:flex; flex-direction:column; gap:0.5rem; }
+      #adminModal .action-btn { border:none; border-radius:0.95rem; padding:0.65rem 0.85rem; cursor:pointer; font-weight:700; font-size:0.85rem; transition:transform 0.2s ease; }
+      #adminModal .action-btn:hover { transform:translateY(-1px); }
+      #adminModal .action-btn.edit { background:rgba(16,185,129,0.14); color:#a7f3d0; }
+      #adminModal .action-btn.delete { background:rgba(239,68,68,0.18); color:#fecaca; }
+      @media (max-width: 720px) {
+        #adminModal .admin-panel-block { padding:1.25rem; }
+        #adminModal .admin-panel-header { flex-direction:column; align-items:flex-start; }
+        #adminModal .products-grid { max-height:none; }
+        #adminModal .product-row { grid-template-columns:1fr; }
+        #adminModal .product-actions { flex-direction:row; }
       }
     </style>
-    <div class="admin-modal-box" style="background:#1a1a1a;color:white;padding:2.5rem;border-radius:16px;max-width:600px;width:95%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,0.8);">
-      <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;border-bottom:1px solid #444;padding-bottom:1rem;">
-        <h2 style="margin:0;font-size:1.8rem;">🔧 Painel Admin</h2>
-        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">
-          <button onclick="logoutAdmin()" style="background:#e55;color:white;border:none;border-radius:8px;padding:0.5rem 1rem;cursor:pointer;font-size:1rem;">Sair</button>
-          <button onclick="closeAdminModal()" style="background:none;border:none;color:#ccc;font-size:1.8rem;cursor:pointer;padding:0.25rem;">×</button>
+    <div class="admin-modal-box">
+      <div class="admin-panel-header">
+        <div>
+          <h2>Painel Admin</h2>
+          <p>Gerencie produtos com uma interface premium escura e moderna.</p>
+        </div>
+        <div class="admin-panel-actions">
+          <button class="logout-btn" onclick="logoutAdmin()">Sair</button>
+          <button class="close-btn" onclick="closeAdminModal()">×</button>
         </div>
       </div>
-      
-      <!-- Add Form -->
-      <div style="background:#2a2a2a;padding:1.5rem;border-radius:12px;margin-bottom:2rem;">
-        <h3 style="margin:0 0 1rem 0;color:#48e011;">➕ Novo Produto</h3>
-        <form id="addForm" style="display:grid;gap:1rem;">
-          <input id="name" placeholder="Nome do produto" required style="padding:1rem;border:1px solid #555;border-radius:8px;background:#333;color:white;font-size:1rem;min-width:0;">
+      <div class="admin-panel-block">
+        <h3>+ Novo Produto</h3>
+        <form id="addForm">
+          <input id="name" class="admin-input" placeholder="Nome do produto" required />
           <div class="field-row">
-            <input id="price" type="number" step="0.01" placeholder="Preço R$" required style="padding:1rem;border:1px solid #555;border-radius:8px;background:#333;color:white;min-width:0;">
-            <select id="category" style="padding:1rem;border:1px solid #555;border-radius:8px;background:#333;color:white;min-width:0;">
+            <input id="price" class="admin-input" type="number" step="0.01" placeholder="Preço R$" required />
+            <select id="category" class="admin-select">
               <option value="charuto">Charuto</option>
               <option value="narguilé">Narguilé</option>
               <option value="cigarro">Cigarro</option>
               <option value="acessório">Acessório</option>
             </select>
           </div>
-          <input id="photo" type="file" accept="image/*" required style="padding:1rem;border:1px solid #555;border-radius:8px;background:#333;color:white;">
-          <textarea id="desc" placeholder="Descrição (opcional)" rows="3" style="padding:1rem;border:1px solid #555;border-radius:8px;background:#333;color:white;"></textarea>
-          <button type="submit" style="padding:1rem;background:#48e011;color:white;border:none;border-radius:8px;font-weight:600;font-size:1.1rem;cursor:pointer;">Adicionar</button>
+          <div class="upload-row">
+            <span>Arraste ou selecione uma imagem</span>
+            <label for="photo">Escolher arquivo</label>
+          </div>
+          <input id="photo" type="file" accept="image/*" required style="display:none;" />
+          <div class="preview-box" id="imagePreview">Nenhuma imagem selecionada</div>
+          <textarea id="desc" class="admin-textarea" placeholder="Descrição (opcional)" rows="4"></textarea>
+          <button type="submit" class="admin-submit"><span style="font-size:1.4rem;line-height:1;">+</span>Adicionar Produto</button>
         </form>
       </div>
-      
-      <!-- Products List -->
-      <div>
-        <h3 style="margin:0 0 1.5rem 0;color:#48e011;">📦 Produtos (${adminProducts.length})</h3>
-        <div id="productsList" style="display:grid;gap:1rem;max-height:300px;overflow:auto;"></div>
+      <div class="admin-panel-block">
+        <div class="products-list-header">
+          <div>
+            <h3>Produtos Cadastrados</h3>
+            <p>${adminProducts.length} produtos disponíveis</p>
+          </div>
+          <span class="badge">Premium</span>
+        </div>
+        <div class="products-grid" id="productsList"></div>
       </div>
     </div>
   `;
   
   document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+  document.getElementById('photo').addEventListener('change', previewAdminImage);
+  document.getElementById('photo').closest('div').querySelector('label').addEventListener('click', () => document.getElementById('photo').click());
+  document.getElementById('adminModal').addEventListener('click', (event) => {
+    if (event.target.id === 'adminModal') closeAdminModal();
+  });
   
   // Add form
   document.getElementById('addForm').onsubmit = (e) => {
@@ -166,14 +363,17 @@ function renderProducts() {
   if (!list) return;
   
   list.innerHTML = adminProducts.map(p => `
-    <div style="background:#333;padding:1rem;border-radius:8px;display:flex;align-items:center;gap:1rem;">
-      <img src="${p.img}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;">
-      <div style="flex:1;">
-        <div style="font-weight:600;font-size:1.1rem;">${p.name}</div>
-        <div>R$ ${p.price.toFixed(2)} | ${p.category}</div>
-        <div style="font-size:0.9rem;color:#ccc;margin-top:0.25rem;">${p.desc}</div>
+    <div class="product-row">
+      <img src="${p.img}" alt="${p.name}" />
+      <div class="product-info">
+        <div class="product-meta">R$ ${p.price.toFixed(2).replace('.', ',')} · ${p.category}</div>
+        <h4>${p.name}</h4>
+        <p>${p.desc}</p>
       </div>
-      <button onclick="deleteProduct(${p.id})" style="background:#e55;color:white;border:none;border-radius:6px;padding:0.5rem 1rem;cursor:pointer;font-size:0.9rem;">🗑️</button>
+      <div class="product-actions">
+        <button class="action-btn edit">Editar</button>
+        <button class="action-btn delete" onclick="deleteProduct(${p.id})">Excluir</button>
+      </div>
     </div>
   `).join('');
 }
@@ -189,8 +389,20 @@ function closeAdminModal() {
   if (modal) {
     modal.remove();
   }
+  document.body.style.overflow = '';
   adminLoggedIn = false;
   localStorage.removeItem('adminLoggedIn');
+}
+
+function previewAdminImage(event) {
+  const preview = document.getElementById('imagePreview');
+  const file = event.target.files[0];
+  if (!file) {
+    preview.innerHTML = 'Nenhuma imagem selecionada';
+    return;
+  }
+  const url = URL.createObjectURL(file);
+  preview.innerHTML = `<img src="${url}" alt="Imagem do produto" />`;
 }
 
 function logoutAdmin() {
@@ -216,13 +428,24 @@ function renderCatalog(products = adminProducts) {
         <div class="product-name">${p.name}</div>
         <div class="product-footer">
           <div class="product-price">R$ ${p.price.toFixed(2).replace('.', ',')}</div>
-          <button class="add-btn">+</button>
+          <button type="button" class="add-btn" onclick="event.stopPropagation(); addToCartById(${p.id})">+</button>
         </div>
       </div>
     </div>
   `).join('');
   
   animateCards();
+}
+
+function addToCartById(id) {
+  const product = adminProducts.find(p => p.id === id);
+  if (product) {
+    addToCart(product);
+    const cartPanel = document.getElementById('cart-panel');
+    if (cartPanel && !cartPanel.classList.contains('open')) {
+      toggleCart();
+    }
+  }
 }
 
 function animateCards() {
@@ -238,7 +461,7 @@ function animateCards() {
 function toggleProduct(id) {
   const product = adminProducts.find(p => p.id === id);
   if (product) {
-    alert(`Produto: ${product.name}\nPreço: R$ ${product.price.toFixed(2)}\nDescrição: ${product.desc}`);
+    addToCart(product);
   }
 }
 
@@ -255,11 +478,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Catálogo dinâmico do localStorage admin
   renderCatalog();
+  renderCart();
   
   // Funções básicas sem erro
   window.toggleCart = toggleCart;
-  window.openCheckout = () => alert('Checkout');
-  window.sendToWhatsApp = () => window.open('https://wa.me/5531900000000');
   window.toggleNav = () => {};
   window.filterProducts = (category, btn) => {
     // Update active filter button
@@ -290,4 +512,6 @@ document.addEventListener('DOMContentLoaded', function() {
   window.toggleNavItem = toggleNavItem;
   window.closeCheckout = closeCheckout;
   window.toggleAdminModal = toggleAdminModal;
+  window.openCheckout = openCheckout;
+  window.sendToWhatsApp = sendToWhatsApp;
 });

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -82,7 +82,7 @@
         <a href="#">Carvão</a><a href="#">Tabaco</a><a href="#">Acessórios</a>
       </div>
       <div class="mega-image">
-        <img src="assets/produtos/aledaOuro.jpeg" alt="Charuto Premium" />
+        <img src="assets/produtos/tabacaria.jpeg" alt="Charuto Premium" />
         <div class="mega-image-label">
           <span>🔥</span> Charutos Premium <em>Exclusivos</em>
         </div>
@@ -155,7 +155,7 @@
       <div class="info-item">
         <span class="info-icon">📍</span>
         <strong>Coronel Fabriciano, MG</strong>
-        <span>R. X, 123 - Centro</span>
+        <span>Praça Louis Ensh, 28 - Centro</span>
       </div>
       <div class="info-item">
         <span class="info-icon">🕒</span>
@@ -229,7 +229,7 @@
           <div class="address-block">
             <span class="address-icon">📍</span>
             <div class="address-text">
-              R. X, 123 - Centro<br/>
+              Praça Louis Ensh, 28 - Centro<br/>
               Coronel Fabriciano, MG<br/>
               (31) 9000-0000
             </div>
@@ -350,7 +350,7 @@
         <span>Total:</span>
         <strong id="cart-total-price">R$ 0,00</strong>
       </div>
-      <button class="checkout-btn" onclick="openCheckout()">Finalizar Pedido</button>
+      <button class="checkout-btn" onclick="sendToWhatsApp()">Finalizar Pedido</button>
     </div>
   </div>
   <div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
@@ -382,7 +382,7 @@
         </div>
         <div class="form-group">
           <label for="field-endereco">Endereço Completo <span>*</span></label>
-          <textarea id="field-endereco" placeholder="Rua, número, bairro, CEP"></textarea>
+          <textarea id="field-endereco" placeholder="Praça Louis Ensh, 28 Centro, Coronel Fabriciano">Praça Louis Ensh, 28 Centro, Coronel Fabriciano</textarea>
         </div>
       </div>
       <div class="modal-footer">
@@ -393,13 +393,12 @@
   </div>
 
   <!-- Admin FAB -->
-  <button class="admin-fab" title="🔐 Admin" onclick="toggleAdminModal()">🔧</button>
+<button class="admin-fab" title="🔐 Admin" onclick="toggleAdminModal()">🔧</button>
 
   <!-- Cart FAB -->
   <button class="cart-fab" id="cart-fab" onclick="toggleCart()">
     🛒 <span class="cart-fab-count" id="cart-fab-count">0</span>
   </button>
-</div>
 
 <!-- Firebase SDK -->
 <!-- Firebase removido -->
