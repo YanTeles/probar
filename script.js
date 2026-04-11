@@ -101,7 +101,7 @@ function sendToWhatsApp() {
   const telefone = document.getElementById('field-telefone').value.trim();
   const endereco = document.getElementById('field-endereco').value.trim();
 
-  const storeNumber = '5531985270034';
+  const storeNumber = '5531995476577';
   const itemsText = cartItems.map(item => `- ${item.quantity}x ${item.name} (R$ ${item.price.toFixed(2).replace('.', ',')})`).join('\n');
   const totalText = formatBRL(getCartTotal());
 
