@@ -497,9 +497,9 @@ function toggleAdminModal() {
         localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
         if (firebaseEnabled) {
           saveProductToFirebase(newProduct);
-          alert('✅ Produto adicionado + sync Firebase!');
+          alert('✅ Produto adicionado');
         } else {
-          alert('✅ Local OK. Firebase config inválida.');
+          alert('✅ Produto adicionado');
         }
         renderProducts();
         form.reset();
