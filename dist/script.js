@@ -110,6 +110,10 @@ async function deleteProductFromFirebase(id) {
 async function loadProducts() {
   initFirebase();
   await loadProductsFromFirebase();
+  if (firebaseEnabled) {
+    subscribeToFirestoreProducts(); // Auto real-time sync
+    console.log('[Firebase] Listener real-time ativo');
+  }
 }
 
 function confirmAge(isAdult) {
@@ -493,9 +497,9 @@ function toggleAdminModal() {
         localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
         if (firebaseEnabled) {
           saveProductToFirebase(newProduct);
-          alert('✅ Produto adicionado!');
+          alert('✅ Produto adicionado + sync Firebase!');
         } else {
-          alert('✅ Produto adicionado localmente. Para sincronizar em outro dispositivo, verifique a configuração do Firebase.');
+          alert('✅ Local OK. Firebase config inválida.');
         }
         renderProducts();
         form.reset();
