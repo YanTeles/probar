@@ -1,17 +1,8 @@
-const firebaseConfig = {
-  apiKey: "REPLACE_WITH_YOUR_API_KEY",
-  authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
-  projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
-  storageBucket: "REPLACE_WITH_YOUR_STORAGE_BUCKET",
-  messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
-  appId: "REPLACE_WITH_YOUR_APP_ID"
-};
-
 let firebaseEnabled = false;
 let db = null;
 
 function isFirebaseConfigured() {
-  return firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('REPLACE');
+  return window.firebaseConfig && window.firebaseConfig.apiKey && !window.firebaseConfig.apiKey.includes('REPLACE');
 }
 
 function initFirebase() {
@@ -21,7 +12,7 @@ function initFirebase() {
   }
 
   try {
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(window.firebaseConfig);
     db = firebase.firestore();
     firebaseEnabled = true;
     console.log('[Firebase] inicializado com sucesso.');
@@ -50,6 +41,8 @@ async function loadProductsFromFirebase() {
       });
       localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
       console.log('[Firebase] produtos carregados do Firestore.');
+    } else {
+      console.log('[Firebase] coleção vazia; mantendo produtos locais/fallback.');
     }
   } catch (error) {
     console.warn('[Firebase] falha ao carregar produtos:', error);
@@ -469,10 +462,12 @@ function toggleAdminModal() {
         localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
         if (firebaseEnabled) {
           saveProductToFirebase(newProduct);
+          alert('✅ Produto adicionado!');
+        } else {
+          alert('✅ Produto adicionado localmente. Para sincronizar em outro dispositivo, verifique a configuração do Firebase.');
         }
         renderProducts();
         form.reset();
-        alert('✅ Produto adicionado!');
       };
       reader.readAsDataURL(photo);
     }
