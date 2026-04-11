@@ -2175,19 +2175,28 @@ section {
   color: #8b000099;
 }
 .status-badge {
-  display: inline-block;
-  padding: 0.3rem 1rem;
-  font-size: 0.58rem;
-  letter-spacing: 0.28em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   border: 1px solid;
+  border-radius: 999px;
   margin-top: 1.25rem;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.status-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.08);
 }
 .status-open {
   color: #4caf50;
-  border-color: #4caf5055;
-  background: #4caf5011;
-  animation: statusPulse 2s ease-in-out infinite;
+  border-color: rgba(76, 175, 80, 0.34);
+  background: rgba(76, 175, 80, 0.12);
+  animation: statusPulse 2.2s ease-in-out infinite;
 }
 .status-closed {
   color: #e55;

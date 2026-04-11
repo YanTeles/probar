@@ -20,6 +20,36 @@ function toggleNavItem(dropId) {
   }
 }
 
+function updateStoreStatus() {
+  const now = new Date();
+  const day = now.getDay(); // 0 = Sunday, 1 = Monday
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  let isOpen = false;
+
+  if (day >= 1 && day <= 5) {
+    isOpen = hour >= 9 && (hour < 18 || (hour === 18 && minute === 0));
+  } else if (day === 6) {
+    isOpen = hour >= 9 && (hour < 12 || (hour === 12 && minute === 0));
+  }
+
+  const statusElements = [
+    document.getElementById('store-status'),
+    document.getElementById('store-status2')
+  ].filter(Boolean);
+
+  statusElements.forEach(el => {
+    el.classList.remove('status-open', 'status-closed');
+    if (isOpen) {
+      el.classList.add('status-open');
+      el.textContent = 'Aberto agora';
+    } else {
+      el.classList.add('status-closed');
+      el.textContent = 'Fechado';
+    }
+  });
+}
+
 function toggleCart() {
   const panel = document.getElementById('cart-panel');
   const overlay = document.getElementById('cart-overlay');
@@ -479,6 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Catálogo dinâmico do localStorage admin
   renderCatalog();
   renderCart();
+  updateStoreStatus();
   
   // Funções básicas sem erro
   window.toggleCart = toggleCart;
@@ -504,7 +535,11 @@ document.addEventListener('DOMContentLoaded', function() {
   };
   window.loadProducts = () => {};
   window.loadMoreProducts = () => {};
-  window.toggleFaq = (btn) => btn.classList.toggle('active');
+  window.toggleFaq = (btn) => {
+    const answer = btn.nextElementSibling;
+    btn.classList.toggle('active');
+    if (answer) answer.classList.toggle('open');
+  };
   window.toggleDrawerSub = () => {};
   window.closeNav = () => {};
   
