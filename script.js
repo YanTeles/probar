@@ -22,6 +22,8 @@ function initFirebase() {
   }
 }
 
+let firestoreUnsubscribe = null;
+
 async function loadProductsFromFirebase() {
   if (!firebaseEnabled || !db) return;
 
@@ -47,6 +49,35 @@ async function loadProductsFromFirebase() {
   } catch (error) {
     console.warn('[Firebase] falha ao carregar produtos:', error);
   }
+}
+
+function subscribeToFirestoreProducts() {
+  if (!firebaseEnabled || !db) return;
+  if (firestoreUnsubscribe) firestoreUnsubscribe();
+
+  firestoreUnsubscribe = db.collection('products').onSnapshot(snapshot => {
+    if (!snapshot.empty) {
+      adminProducts = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: Number(doc.id) || Date.now(),
+          name: data.name || '',
+          price: parseFloat(data.price) || 0,
+          category: data.category || '',
+          img: data.img || 'assets/produtos/tabacaria.jpeg',
+          desc: data.desc || ''
+        };
+      });
+      localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
+      console.log('[Firebase] produtos sincronizados em tempo real.');
+      renderCatalog();
+      renderProducts();
+    } else {
+      console.log('[Firebase] coleção vazia em tempo real; mantendo local.');
+    }
+  }, error => {
+    console.warn('[Firebase] erro no snapshot do Firestore:', error);
+  });
 }
 
 async function saveProductToFirebase(product) {
