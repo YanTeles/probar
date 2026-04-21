@@ -614,11 +614,213 @@ function animateCards() {
   });
 }
 
-function toggleProduct(id) {
+// =====================================================
+// MODAL DE VISUALIZAÇÃO DO PRODUTO
+// =====================================================
+
+function openProductModal(id) {
+  const product = adminProducts.find(p => p.id === id);
+  if (!product) return;
+
+  // Remove modal anterior se existir
+  const existing = document.getElementById('product-view-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'product-view-modal';
+  modal.style.cssText = `
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(14px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    animation: pvmFadeIn 0.28s ease;
+  `;
+
+  modal.innerHTML = `
+    <style>
+      @keyframes pvmFadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+      @keyframes pvmSlideUp {
+        from { opacity: 0; transform: translateY(40px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      #product-view-modal .pvm-box {
+        position: relative;
+        width: min(520px, 100%);
+        background: #0d1117;
+        border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 2rem;
+        overflow: hidden;
+        box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+        animation: pvmSlideUp 0.32s cubic-bezier(.22,.68,0,1.2);
+        display: flex;
+        flex-direction: column;
+      }
+      #product-view-modal .pvm-img-wrap {
+        width: 100%;
+        aspect-ratio: 4/3;
+        overflow: hidden;
+        background: #090b10;
+        flex-shrink: 0;
+      }
+      #product-view-modal .pvm-img-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+      #product-view-modal .pvm-img-wrap img:hover {
+        transform: scale(1.04);
+      }
+      #product-view-modal .pvm-body {
+        padding: 1.75rem 2rem 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      #product-view-modal .pvm-cat {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #10b981;
+        background: rgba(16,185,129,0.1);
+        border: 1px solid rgba(16,185,129,0.22);
+        display: inline-block;
+        padding: 0.3rem 0.85rem;
+        border-radius: 999px;
+        width: fit-content;
+      }
+      #product-view-modal .pvm-name {
+        font-size: 1.65rem;
+        font-weight: 800;
+        color: #f8fafc;
+        line-height: 1.2;
+        margin: 0;
+      }
+      #product-view-modal .pvm-desc {
+        color: #94a3b8;
+        font-size: 0.97rem;
+        line-height: 1.65;
+        margin: 0;
+      }
+      #product-view-modal .pvm-price {
+        font-size: 1.9rem;
+        font-weight: 900;
+        color: #a3e635;
+        letter-spacing: -0.02em;
+      }
+      #product-view-modal .pvm-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+      }
+      #product-view-modal .pvm-close-btn {
+        flex: 0 0 auto;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.05);
+        color: #94a3b8;
+        border-radius: 1.2rem;
+        padding: 0 1.2rem;
+        height: 52px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        display: flex; align-items: center; justify-content: center;
+      }
+      #product-view-modal .pvm-close-btn:hover {
+        background: rgba(239,68,68,0.15);
+        color: #fca5a5;
+        border-color: rgba(239,68,68,0.3);
+      }
+      #product-view-modal .pvm-add-btn {
+        flex: 1;
+        border: none;
+        background: linear-gradient(135deg, #10b981, #0f766e);
+        color: #fff;
+        border-radius: 1.2rem;
+        height: 52px;
+        font-size: 1rem;
+        font-weight: 800;
+        cursor: pointer;
+        letter-spacing: 0.02em;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 8px 24px rgba(16,185,129,0.3);
+      }
+      #product-view-modal .pvm-add-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 36px rgba(16,185,129,0.45);
+      }
+      #product-view-modal .pvm-add-btn:active {
+        transform: scale(0.97);
+      }
+    </style>
+    <div class="pvm-box">
+      <div class="pvm-img-wrap">
+        <img src="${product.img}" alt="${product.name}"
+             onerror="this.src='https://via.placeholder.com/520x390/111/555?text=Produto'" />
+      </div>
+      <div class="pvm-body">
+        <span class="pvm-cat">${product.category}</span>
+        <h2 class="pvm-name">${product.name}</h2>
+        ${product.desc ? `<p class="pvm-desc">${product.desc}</p>` : ''}
+        <div class="pvm-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>
+        <div class="pvm-actions">
+          <button class="pvm-close-btn" onclick="closeProductModal()" title="Voltar ao catálogo">✕</button>
+          <button class="pvm-add-btn" onclick="addToCartFromModal(${product.id})">
+            Adicionar ao Carrinho
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Fechar ao clicar no backdrop
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeProductModal();
+  });
+
+  // Fechar com ESC
+  document.addEventListener('keydown', _pvmEscHandler);
+
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+}
+
+function _pvmEscHandler(e) {
+  if (e.key === 'Escape') closeProductModal();
+}
+
+function closeProductModal() {
+  const modal = document.getElementById('product-view-modal');
+  if (modal) {
+    modal.style.animation = 'pvmFadeIn 0.2s ease reverse';
+    setTimeout(() => modal.remove(), 180);
+  }
+  document.body.style.overflow = '';
+  document.removeEventListener('keydown', _pvmEscHandler);
+}
+
+function addToCartFromModal(id) {
   const product = adminProducts.find(p => p.id === id);
   if (product) {
     addToCart(product);
+    closeProductModal();
+    const cartPanel = document.getElementById('cart-panel');
+    if (cartPanel && !cartPanel.classList.contains('open')) {
+      toggleCart();
+    }
   }
+}
+
+// =====================================================
+// SUBSTITUA a função toggleProduct existente por esta:
+// =====================================================
+function toggleProduct(id) {
+  openProductModal(id);
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
