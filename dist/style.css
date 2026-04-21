@@ -393,7 +393,7 @@ a,
 }
 
 /* DEBUG FORCE - CATALOGO SEMPRE VISIVEL */
-#main-site, #catalogo, #catalog-grid {
+#main-site, #catalogo {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -401,6 +401,7 @@ a,
   min-height: 1px !important;
 }
 #catalog-grid {
+  display: grid !important;
   min-height: 400px !important;
 }
 .product-card {
@@ -1341,10 +1342,11 @@ section {
   background: #5b7fa611;
 }
 
-/* Grid - Cards lado a lado, pequenos */
+/* Grid - cards mais largos e responsivos */
 .catalog-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 280px));
+  justify-content: center;
   gap: 1rem;
   max-width: 1400px;
   margin: 0 auto;
@@ -1353,13 +1355,13 @@ section {
 
 @media (max-width: 1400px) {
   .catalog-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 260px));
   }
 }
 
 @media (max-width: 768px) {
   .catalog-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 220px));
   }
 }
 

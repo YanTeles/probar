@@ -42,11 +42,14 @@ async function loadProductsFromFirebase() {
           desc: data.desc || ''
         };
       });
-      localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
       console.log('[Firebase] produtos carregados do Firestore.');
     } else {
-      console.log('[Firebase] coleção vazia; mantendo produtos locais/fallback.');
+      adminProducts = [];
+      console.log('[Firebase] coleção vazia; sem fallback local.');
     }
+    localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
+    renderCatalog();
+    renderProducts();
   } catch (error) {
     console.warn('[Firebase] falha ao carregar produtos:', error);
   }
@@ -70,13 +73,14 @@ function subscribeToFirestoreProducts() {
           desc: data.desc || ''
         };
       });
-      localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
-      console.log('[Firebase] produtos sincronizados em tempo real.');
-      renderCatalog();
-      renderProducts();
     } else {
-      console.log('[Firebase] coleção vazia em tempo real; mantendo local.');
+      adminProducts = [];
+      console.log('[Firebase] coleção vazia em tempo real; sem fallback local.');
     }
+    localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
+    console.log('[Firebase] produtos sincronizados em tempo real.');
+    renderCatalog();
+    renderProducts();
   }, error => {
     console.warn('[Firebase] erro no snapshot do Firestore:', error);
   });
@@ -198,39 +202,7 @@ function closeCheckout() {
   document.body.style.overflow = '';
 }
 
-let adminProducts = [];
-
-// 🔥 FIX: Inicialização AUTOMÁTICA dos produtos
-(function autoInitProducts() {
-  console.log('🔥 AUTO-INIT: Verificando produtos...');
-  
-  // Garante que temos produtos
-  if (adminProducts.length === 0) {
-    console.log('⚠️ Sem produtos - criando defaults');
-    const defaults = [
-      { id: 1, name: 'Aleda Ouro', price: 25.00, category: 'Charutos', img: 'assets/produtos/aledaOuro.jpeg', imgs: [], desc: 'Charuto premium cubano' },
-      { id: 2, name: 'Piteira BB Premium', price: 12.00, category: 'Piteiras', img: 'assets/produtos/piteira-bb-premium.jpeg', imgs: [], desc: 'Piteira para blunt' },
-      { id: 3, name: 'King Herbal Wrap', price: 8.00, category: 'Sedas', img: 'assets/produtos/kingHerbalWrap.jpeg', imgs: [], desc: 'Wrap herbal' }
-    ];
-    adminProducts = defaults;
-    localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
-  }
-  
-  // 🚀 RENDERIZA IMEDIATAMENTE
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        renderCatalog();
-        console.log('✅ Catálogo renderizado no DOMContentLoaded');
-      }, 100);
-    });
-  } else {
-    // Já carregou
-    setTimeout(renderCatalog, 50);
-  }
-  
-  console.log('✅ AUTO-INIT completo:', adminProducts.length, 'produtos prontos');
-})();
+let adminProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]');
 
 function openCheckout() {
   if (cartItems.length === 0) {
@@ -365,21 +337,14 @@ function renderCheckoutSummary() {
   `;
 }
 
-if (adminProducts.length === 0) {
-  adminProducts = [
-    { id: 1,  name: 'Aleda Ouro',        price: 25.00, category: 'Charutos',        img: 'assets/produtos/aledaOuro.jpeg',         imgs: [], desc: 'Charuto premium cubano' },
-    { id: 2,  name: 'Aleda LTD',         price: 30.00, category: 'Charutos',        img: 'assets/produtos/aleda-ltd.jpeg',          imgs: [], desc: 'Edição limitada' },
-    { id: 3,  name: 'Blunt King Brown',  price: 15.00, category: 'Cigarros',        img: 'assets/produtos/bb-brown-1.jpeg',         imgs: [], desc: 'Cigarro artesanal' },
-    { id: 4,  name: 'Cinzeiro Tonabe',   price: 20.00, category: 'Acessórios',      img: 'assets/produtos/cinzeiro-tonabe.jpeg',    imgs: [], desc: 'Cinzeiro de cerâmica' },
-    { id: 5,  name: 'Piteira BB Premium',price: 12.00, category: 'Piteiras',        img: 'assets/produtos/piteira-bb-premium.jpeg', imgs: [], desc: 'Piteira para blunt' },
-    { id: 6,  name: 'Zomo Black',        price: 18.00, category: 'Narguilé',        img: 'assets/produtos/zomo-black.jpeg',         imgs: [], desc: 'Tabaco para narguilé' },
-    { id: 7,  name: 'King Herbal Wrap',  price:  8.00, category: 'Sedas',           img: 'assets/produtos/kingHerbalWrap.jpeg',     imgs: [], desc: 'Wrap herbal' },
-    { id: 8,  name: 'Puff Life',         price: 10.00, category: 'Cigarros de Palha', img: 'assets/produtos/puff-life.jpeg',        imgs: [], desc: 'Cigarro premium' },
-    { id: 9,  name: 'Zomo Pink',         price: 22.00, category: 'Tabacos',         img: 'assets/produtos/zomo-pink.jpeg',          imgs: [], desc: 'Tabaco aromatizado' },
-    { id: 10, name: 'Rolling Machine',   price: 50.00, category: 'Acessórios',      img: 'assets/produtos/rollingMachine.jpeg',     imgs: [], desc: 'Máquina de enrolar' }
-  ];
-  localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
-}
+document.addEventListener('DOMContentLoaded', async () => {
+  renderCart();
+  updateStoreStatus();
+
+  // Render imediato com cache local e sincroniza com Firestore em seguida.
+  renderCatalog();
+  await loadProducts();
+});
 
 // =====================================================
 // ADMIN MODAL
@@ -744,4 +709,86 @@ function animateCards() {
 
 // =====================================================
 // MODAL DE VISUALIZAÇÃO DO PRODUTO (com carrossel)
+// =====================================================
+function toggleProduct(id) {
+  const product = adminProducts.find((p) => p.id === id);
+  if (!product) return;
+  openProductModal(product);
+}
 
+function openProductModal(product) {
+  closeProductModal();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'product-modal';
+  overlay.className = 'modal-overlay open';
+
+  const gallery = (product.imgs && product.imgs.length > 0) ? product.imgs : [product.img];
+  const safeDesc = (product.desc && product.desc.trim())
+    ? product.desc
+    : 'Produto premium disponível em nossa tabacaria.';
+  const hasMultipleImages = gallery.length > 1;
+
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:680px;">
+      <div class="modal-handle"></div>
+      <div class="modal-header" style="padding-bottom:0.5rem;">
+        <h3>${product.name}</h3>
+        <p>${product.category}</p>
+      </div>
+      <div class="modal-body" style="padding-top:0.5rem;">
+        <div style="position:relative;">
+          <img id="product-modal-image" src="${gallery[0]}" alt="${product.name}" style="width:100%;height:260px;object-fit:cover;border-radius:14px;border:1px solid #5b7fa622;" />
+          ${hasMultipleImages ? `
+            <button id="product-modal-prev" type="button" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:none;border-radius:999px;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;font-size:1rem;">‹</button>
+            <button id="product-modal-next" type="button" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:none;border-radius:999px;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;font-size:1rem;">›</button>
+            <div id="product-modal-counter" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.55);color:#fff;padding:0.2rem 0.5rem;border-radius:999px;font-size:0.75rem;">1/${gallery.length}</div>
+          ` : ''}
+        </div>
+        <p style="margin-top:1rem;line-height:1.7;color:var(--text-muted);font-size:1rem;">${safeDesc}</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.2rem;gap:0.8rem;">
+          <strong style="font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--gold);">R$ ${product.price.toFixed(2).replace('.', ',')}</strong>
+          <button type="button" class="btn-primary" onclick="addToCartById(${product.id})">Adicionar ao carrinho</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) closeProductModal();
+  });
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  if (hasMultipleImages) {
+    let currentImageIndex = 0;
+    const imageEl = document.getElementById('product-modal-image');
+    const counterEl = document.getElementById('product-modal-counter');
+    const prevBtn = document.getElementById('product-modal-prev');
+    const nextBtn = document.getElementById('product-modal-next');
+
+    const updateImage = () => {
+      imageEl.src = gallery[currentImageIndex];
+      if (counterEl) counterEl.textContent = `${currentImageIndex + 1}/${gallery.length}`;
+    };
+
+    prevBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      currentImageIndex = (currentImageIndex - 1 + gallery.length) % gallery.length;
+      updateImage();
+    });
+
+    nextBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      currentImageIndex = (currentImageIndex + 1) % gallery.length;
+      updateImage();
+    });
+  }
+}
+
+function closeProductModal() {
+  const modal = document.getElementById('product-modal');
+  if (modal) modal.remove();
+  document.body.style.overflow = '';
+}
