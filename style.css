@@ -392,6 +392,22 @@ a,
   display: none !important;
 }
 
+/* DEBUG FORCE - CATALOGO SEMPRE VISIVEL */
+#main-site, #catalogo, #catalog-grid {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: auto !important;
+  min-height: 1px !important;
+}
+#catalog-grid {
+  min-height: 400px !important;
+}
+.product-card {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 /* ===== HEADER ===== */
 header {
   position: fixed;
@@ -1325,25 +1341,31 @@ section {
   background: #5b7fa611;
 }
 
-/* Grid */
+/* Grid - Cards lado a lado, pequenos */
 .catalog-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
-@media (min-width: 480px) {
+
+@media (max-width: 1400px) {
   .catalog-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
 }
-@media (min-width: 900px) {
+
+@media (max-width: 768px) {
   .catalog-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 }
-@media (min-width: 1200px) {
+
+@media (max-width: 480px) {
   .catalog-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1351,17 +1373,11 @@ section {
 .product-card {
   background: var(--dark3);
   border: 1px solid #5b7fa611;
-  position: relative;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  transition:
-    transform 0.35s var(--ease-out-expo),
-    box-shadow 0.35s,
-    border-color 0.3s;
-  cursor: pointer;
-  -webkit-user-select: none;
-  /* Entrada animation handled by JS */
-  opacity: 0;
-  transform: translateY(30px);
+  transition: transform 0.3s ease;
+  height: 100%;
 }
 .product-card.card-visible {
   opacity: 1;
@@ -1411,17 +1427,16 @@ section {
 /* Image shimmer overlay */
 .product-img-wrap {
   position: relative;
+  width: 100%;
+  height: 140px;
   overflow: hidden;
+  background: #f5f5f5;
 }
 .product-img {
   width: 100%;
-  aspect-ratio: 4/3;
+  height: 100%;
   object-fit: cover;
   display: block;
-  transition:
-    transform 0.6s var(--ease-out-expo),
-    filter 0.4s;
-  filter: brightness(1.05);
 }
 .product-card:hover .product-img {
   transform: scale(1.06);
@@ -1445,7 +1460,10 @@ section {
 }
 
 .product-body {
-  padding: 1rem 1.2rem 1.3rem;
+  padding: 0.75rem 0.9rem 0.9rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 .product-cat {
   font-size: 0.58rem;

@@ -198,7 +198,39 @@ function closeCheckout() {
   document.body.style.overflow = '';
 }
 
-let adminProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]');
+let adminProducts = [];
+
+// 🔥 FIX: Inicialização AUTOMÁTICA dos produtos
+(function autoInitProducts() {
+  console.log('🔥 AUTO-INIT: Verificando produtos...');
+  
+  // Garante que temos produtos
+  if (adminProducts.length === 0) {
+    console.log('⚠️ Sem produtos - criando defaults');
+    const defaults = [
+      { id: 1, name: 'Aleda Ouro', price: 25.00, category: 'Charutos', img: 'assets/produtos/aledaOuro.jpeg', imgs: [], desc: 'Charuto premium cubano' },
+      { id: 2, name: 'Piteira BB Premium', price: 12.00, category: 'Piteiras', img: 'assets/produtos/piteira-bb-premium.jpeg', imgs: [], desc: 'Piteira para blunt' },
+      { id: 3, name: 'King Herbal Wrap', price: 8.00, category: 'Sedas', img: 'assets/produtos/kingHerbalWrap.jpeg', imgs: [], desc: 'Wrap herbal' }
+    ];
+    adminProducts = defaults;
+    localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
+  }
+  
+  // 🚀 RENDERIZA IMEDIATAMENTE
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        renderCatalog();
+        console.log('✅ Catálogo renderizado no DOMContentLoaded');
+      }, 100);
+    });
+  } else {
+    // Já carregou
+    setTimeout(renderCatalog, 50);
+  }
+  
+  console.log('✅ AUTO-INIT completo:', adminProducts.length, 'produtos prontos');
+})();
 
 function openCheckout() {
   if (cartItems.length === 0) {
@@ -343,7 +375,7 @@ if (adminProducts.length === 0) {
     { id: 6,  name: 'Zomo Black',        price: 18.00, category: 'Narguilé',        img: 'assets/produtos/zomo-black.jpeg',         imgs: [], desc: 'Tabaco para narguilé' },
     { id: 7,  name: 'King Herbal Wrap',  price:  8.00, category: 'Sedas',           img: 'assets/produtos/kingHerbalWrap.jpeg',     imgs: [], desc: 'Wrap herbal' },
     { id: 8,  name: 'Puff Life',         price: 10.00, category: 'Cigarros de Palha', img: 'assets/produtos/puff-life.jpeg',        imgs: [], desc: 'Cigarro premium' },
-    { id: 9,  name: 'Tesoura Tonabe',    price: 15.00, category: 'Acessórios',      img: 'assets/produtos/tesoura-tonabe.jpeg',     imgs: [], desc: 'Tesoura para tabaco' },
+    { id: 9,  name: 'Zomo Pink',         price: 22.00, category: 'Tabacos',         img: 'assets/produtos/zomo-pink.jpeg',          imgs: [], desc: 'Tabaco aromatizado' },
     { id: 10, name: 'Rolling Machine',   price: 50.00, category: 'Acessórios',      img: 'assets/produtos/rollingMachine.jpeg',     imgs: [], desc: 'Máquina de enrolar' }
   ];
   localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
