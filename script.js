@@ -159,6 +159,38 @@ function toggleNavItem(dropId) {
   }
 }
 
+function toggleNav() {
+  const drawer = document.getElementById('nav-drawer');
+  const hamburger = document.getElementById('hamburger');
+  if (!drawer || !hamburger) return;
+
+  const isOpen = !drawer.classList.contains('open');
+  drawer.classList.toggle('open', isOpen);
+  hamburger.classList.toggle('open', isOpen);
+  document.body.classList.toggle('nav-open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+
+function closeNav() {
+  const drawer = document.getElementById('nav-drawer');
+  const hamburger = document.getElementById('hamburger');
+  if (!drawer || !hamburger) return;
+
+  drawer.classList.remove('open');
+  hamburger.classList.remove('open');
+  document.body.classList.remove('nav-open');
+  document.body.style.overflow = '';
+}
+
+function toggleDrawerSub(button) {
+  if (!button) return;
+  const subMenu = button.nextElementSibling;
+  if (!subMenu || !subMenu.classList.contains('drawer-sub')) return;
+
+  const isOpen = subMenu.classList.toggle('open');
+  button.classList.toggle('open', isOpen);
+}
+
 function updateStoreStatus() {
   const now = new Date();
   const day = now.getDay();
@@ -338,8 +370,27 @@ function renderCheckoutSummary() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  const drawer = document.getElementById('nav-drawer');
+  if (drawer && drawer.parentElement !== document.body) {
+    // Move o drawer para fora do header para evitar bugs de empilhamento/containing block.
+    document.body.appendChild(drawer);
+  }
+
   renderCart();
   updateStoreStatus();
+
+  const drawerLinks = document.querySelectorAll('#nav-drawer a');
+  drawerLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      closeNav();
+    });
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 900) {
+      closeNav();
+    }
+  });
 
   // Render imediato com cache local e sincroniza com Firestore em seguida.
   renderCatalog();

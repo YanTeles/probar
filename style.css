@@ -861,14 +861,26 @@ nav.main-nav {
     right: 0;
     bottom: 0;
     background: var(--dark2);
-    z-index: 198;
+    z-index: 1001;
     overflow-y: auto;
     transform: translateX(-100%);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
     transition: transform 0.35s var(--ease-out-expo);
     -webkit-overflow-scrolling: touch;
   }
   .nav-drawer.open {
     transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+  body.nav-open .nav-drawer {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
   }
   .drawer-section {
     border-bottom: 1px solid #5b7fa611;
