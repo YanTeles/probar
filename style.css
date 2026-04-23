@@ -392,23 +392,6 @@ a,
   display: none !important;
 }
 
-/* DEBUG FORCE - CATALOGO SEMPRE VISIVEL */
-#main-site, #catalogo {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  height: auto !important;
-  min-height: 1px !important;
-}
-#catalog-grid {
-  display: grid !important;
-  min-height: 400px !important;
-}
-.product-card {
-  opacity: 1 !important;
-  transform: none !important;
-}
-
 /* ===== HEADER ===== */
 header {
   position: fixed;
@@ -1322,15 +1305,11 @@ section {
 }
 .catalog-filters {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.6rem;
   margin-bottom: 2rem;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
   padding-bottom: 0.5rem;
-  scrollbar-width: none;
-}
-.catalog-filters::-webkit-scrollbar {
-  display: none;
 }
 .filter-btn {
   background: transparent;

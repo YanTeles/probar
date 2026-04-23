@@ -134,22 +134,58 @@ const CATEGORIES = [
   'Cigarros de Palha',
   'Tabacos',
   'Charutos',
-  'Narguilé'
+  'Narguilé',
+  'Isqueiros',
+  'Bombonieres',
+  'Bebidas',
+  'Incensos'
 ];
+
+const AGE_VERIFIED_KEY = 'colmeiaAgeVerified';
 
 function confirmAge(isAdult) {
   const gate = document.getElementById('age-gate');
   const mainSite = document.getElementById('main-site');
   const warning = document.getElementById('age-warning');
-  
+
   if (isAdult) {
+    try {
+      localStorage.setItem(AGE_VERIFIED_KEY, 'yes');
+    } catch (e) { /* modo privado etc. */ }
+    if (gate) gate.style.display = 'none';
+    if (mainSite) {
+      mainSite.classList.remove('hidden');
+      mainSite.style.display = 'block';
+    }
+  } else {
+    if (gate) gate.style.display = 'none';
+    if (warning) warning.style.display = 'flex';
+  }
+}
+
+function initAgeGate() {
+  const gate = document.getElementById('age-gate');
+  const mainSite = document.getElementById('main-site');
+  const warning = document.getElementById('age-warning');
+  if (!gate || !mainSite) return;
+
+  let verified = false;
+  try {
+    verified = localStorage.getItem(AGE_VERIFIED_KEY) === 'yes';
+  } catch (e) { verified = false; }
+
+  if (warning) warning.style.display = 'none';
+
+  if (verified) {
     gate.style.display = 'none';
     mainSite.classList.remove('hidden');
     mainSite.style.display = 'block';
-  } else {
-    gate.style.display = 'none';
-    warning.style.display = 'flex';
+    return;
   }
+
+  gate.style.display = 'flex';
+  mainSite.classList.add('hidden');
+  mainSite.style.display = 'none';
 }
 
 function toggleNavItem(dropId) {
@@ -236,6 +272,55 @@ function closeCheckout() {
 
 let adminProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]');
 
+/** Filtro ativo na vitrine (valor do botão / mega menu). */
+let catalogCategory = 'all';
+
+function stripDiacritics(str) {
+  return String(str)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function getFilteredCatalogProducts() {
+  let list = adminProducts.slice();
+  if (catalogCategory && catalogCategory !== 'all') {
+    const needle = stripDiacritics(catalogCategory);
+    list = list.filter(p => {
+      const cat = stripDiacritics(p.category || '');
+      return cat === needle || cat.includes(needle);
+    });
+  }
+  const input = document.getElementById('product-search');
+  const raw = input && input.value ? input.value.trim() : '';
+  if (raw) {
+    const q = stripDiacritics(raw);
+    list = list.filter(p =>
+      stripDiacritics(p.name || '').includes(q) ||
+      stripDiacritics(p.category || '').includes(q) ||
+      stripDiacritics(p.desc || '').includes(q)
+    );
+  }
+  return list;
+}
+
+function filterProducts(tag, btnEl) {
+  catalogCategory = tag || 'all';
+  document.querySelectorAll('.catalog-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl && btnEl.classList) {
+    btnEl.classList.add('active');
+  }
+  renderCatalog();
+}
+
+function handleSearch() {
+  renderCatalog();
+}
+
+function loadMoreProducts() {
+  /* Reservado: o grid já lista todos os produtos filtrados. */
+}
+
 function openCheckout() {
   if (cartItems.length === 0) {
     alert('Seu carrinho está vazio. Adicione produtos antes de finalizar.');
@@ -285,6 +370,17 @@ function formatBRL(value) {
   return `R$ ${value.toFixed(2).replace('.', ',')}`;
 }
 
+/** Evita que `<`, `>` etc. na descrição/nome quebrem o HTML (innerHTML) ou “sumam” no modal. */
+function escapeHtml(value) {
+  if (value == null) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function getCartCount() {
   return cartItems.reduce((sum, item) => sum + item.quantity, 0);
 }
@@ -312,7 +408,7 @@ function renderCart() {
   list.innerHTML = cartItems.map(item => `
     <div class="cart-item">
       <div>
-        <strong>${item.name}</strong>
+        <strong>${escapeHtml(item.name)}</strong>
         <div class="cart-item-meta">${item.quantity}x • ${formatBRL(item.price)}</div>
       </div>
       <div class="cart-item-actions">
@@ -358,7 +454,7 @@ function renderCheckoutSummary() {
   }
   summary.innerHTML = cartItems.map(item => `
     <div class="summary-line">
-      <span>${item.quantity}x ${item.name}</span>
+      <span>${item.quantity}x ${escapeHtml(item.name)}</span>
       <strong>${formatBRL(item.price * item.quantity)}</strong>
     </div>
   `).join('') + `
@@ -370,6 +466,8 @@ function renderCheckoutSummary() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  initAgeGate();
+
   const drawer = document.getElementById('nav-drawer');
   if (drawer && drawer.parentElement !== document.body) {
     // Move o drawer para fora do header para evitar bugs de empilhamento/containing block.
@@ -624,6 +722,7 @@ function toggleAdminModal() {
     renderAdminPhotoGrid();
     document.getElementById('addForm').reset();
     renderProducts();
+    renderCatalog();
   };
 
   renderProducts();
@@ -655,7 +754,7 @@ function renderAdminPhotoGrid() {
   }
   grid.innerHTML = _adminPendingImgs.map((src, i) => `
     <div class="photo-thumb">
-      <img src="${src}" alt="Foto ${i + 1}" />
+      <img src="${escapeHtml(src)}" alt="Foto ${i + 1}" />
       ${i === 0 ? '<span class="thumb-badge">Capa</span>' : ''}
       <button class="thumb-remove" onclick="removeAdminPendingPhoto(${i})" title="Remover">×</button>
     </div>
@@ -675,11 +774,11 @@ function renderProducts() {
 
   list.innerHTML = adminProducts.map(p => `
     <div class="product-row">
-      <img src="${p.img}" alt="${p.name}" />
+      <img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}" />
       <div class="product-info">
-        <div class="product-meta">R$ ${p.price.toFixed(2).replace('.', ',')} · ${p.category}${p.imgs && p.imgs.length > 1 ? ` · ${p.imgs.length} fotos` : ''}</div>
-        <h4>${p.name}</h4>
-        <p>${p.desc}</p>
+        <div class="product-meta">R$ ${p.price.toFixed(2).replace('.', ',')} · ${escapeHtml(p.category)}${p.imgs && p.imgs.length > 1 ? ` · ${p.imgs.length} fotos` : ''}</div>
+        <h4>${escapeHtml(p.name)}</h4>
+        <p>${escapeHtml(p.desc)}</p>
       </div>
       <div class="product-actions">
         <button class="action-btn delete" onclick="deleteProduct(${p.id})">Excluir</button>
@@ -693,6 +792,7 @@ function deleteProduct(id) {
   localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
   if (firebaseEnabled) deleteProductFromFirebase(id);
   renderProducts();
+  renderCatalog();
 }
 
 function closeAdminModal() {
@@ -712,23 +812,25 @@ function logoutAdmin() {
 // CATÁLOGO
 // =====================================================
 
-function renderCatalog(products = adminProducts) {
+function renderCatalog(products) {
   const grid = document.getElementById('catalog-grid');
   if (!grid) return;
 
-  if (products.length === 0) {
+  const list = products === undefined ? getFilteredCatalogProducts() : products;
+
+  if (list.length === 0) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#888;">Nenhum produto encontrado.</div>';
     return;
   }
 
-  grid.innerHTML = products.map(p => `
+  grid.innerHTML = list.map(p => `
     <div class="product-card" onclick="toggleProduct(${p.id})">
       <div class="product-img-wrap">
-        <img class="product-img" src="${p.img}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x300/333/fff?text=Produto'">
+        <img class="product-img" src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}" onerror="this.src='https://via.placeholder.com/300x300/333/fff?text=Produto'">
       </div>
       <div class="product-body">
-        <div class="product-cat">${p.category}</div>
-        <div class="product-name">${p.name}</div>
+        <div class="product-cat">${escapeHtml(p.category)}</div>
+        <div class="product-name">${escapeHtml(p.name)}</div>
         <div class="product-footer">
           <div class="product-price">R$ ${p.price.toFixed(2).replace('.', ',')}</div>
           <button type="button" class="add-btn" onclick="event.stopPropagation(); addToCartById(${p.id})">+</button>
@@ -776,20 +878,20 @@ function openProductModal(product) {
 
   const gallery = (product.imgs && product.imgs.length > 0) ? product.imgs : [product.img];
   const safeDesc = (product.desc && product.desc.trim())
-    ? product.desc
-    : 'Produto premium disponível em nossa tabacaria.';
+    ? escapeHtml(product.desc)
+    : escapeHtml('Produto premium disponível em nossa tabacaria.');
   const hasMultipleImages = gallery.length > 1;
 
   overlay.innerHTML = `
     <div class="modal-box" style="max-width:680px;">
       <div class="modal-handle"></div>
       <div class="modal-header" style="padding-bottom:0.5rem;">
-        <h3>${product.name}</h3>
-        <p>${product.category}</p>
+        <h3>${escapeHtml(product.name)}</h3>
+        <p>${escapeHtml(product.category)}</p>
       </div>
       <div class="modal-body" style="padding-top:0.5rem;">
         <div style="position:relative;">
-          <img id="product-modal-image" src="${gallery[0]}" alt="${product.name}" style="width:100%;height:260px;object-fit:cover;border-radius:14px;border:1px solid #5b7fa622;" />
+          <img id="product-modal-image" src="${escapeHtml(gallery[0])}" alt="${escapeHtml(product.name)}" style="width:100%;height:260px;object-fit:cover;border-radius:14px;border:1px solid #5b7fa622;" />
           ${hasMultipleImages ? `
             <button id="product-modal-prev" type="button" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:none;border-radius:999px;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;font-size:1rem;">‹</button>
             <button id="product-modal-next" type="button" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:none;border-radius:999px;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;font-size:1rem;">›</button>

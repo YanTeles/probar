@@ -11,7 +11,24 @@
 </head>
 <body>
 
-<!-- Age-gate REMOVIDO para debug - site carrega direto -->
+<div id="age-gate" class="age-gate" role="dialog" aria-modal="true" aria-labelledby="age-gate-title">
+  <div class="age-gate-inner">
+    <div class="age-gate-logo">Premium Tabacaria</div>
+    <div class="age-gate-sub">Verificação de idade</div>
+    <span class="age-gate-icon" aria-hidden="true">🔞</span>
+    <h2 id="age-gate-title">Você tem mais de 18 anos?</h2>
+    <p>Este site comercializa produtos restritos a maiores de idade. Ao continuar, você declara ter atingido a maioridade legal no seu país.</p>
+    <div class="age-btns">
+      <button type="button" class="btn-age-yes" onclick="confirmAge(true)">Sim, tenho 18+</button>
+      <button type="button" class="btn-age-no" onclick="confirmAge(false)">Não</button>
+    </div>
+  </div>
+</div>
+
+<div id="age-warning" class="age-warning">
+  <h2>Acesso restrito</h2>
+  <p>Desculpe, este conteúdo é destinado apenas a maiores de 18 anos.</p>
+</div>
 
 <div id="main-site">
   <!-- Header -->
@@ -57,6 +74,10 @@
         <a href="#" onclick="filterProducts('cachimbo')"><span>Cachimbo</span><span class="sidelink-arrow">→</span></a>
         <a href="#" onclick="filterProducts('cigarro')"><span>Cigarro</span><span class="sidelink-arrow">→</span></a>
         <a href="#" onclick="filterProducts('acessório')"><span>Acessórios</span><span class="sidelink-arrow">→</span></a>
+        <a href="#catalogo" onclick="filterProducts('Isqueiros')"><span>Isqueiros</span><span class="sidelink-arrow">→</span></a>
+        <a href="#catalogo" onclick="filterProducts('Bombonieres')"><span>Bombonieres</span><span class="sidelink-arrow">→</span></a>
+        <a href="#catalogo" onclick="filterProducts('Bebidas')"><span>Bebidas</span><span class="sidelink-arrow">→</span></a>
+        <a href="#catalogo" onclick="filterProducts('Incensos')"><span>Incensos</span><span class="sidelink-arrow">→</span></a>
       </div>
       <div class="mega-links">
         <div class="mega-cat-label">Charutos Premium</div>
@@ -98,6 +119,10 @@
           <a href="#" onclick="filterProducts('charuto')">Charutos</a>
           <a href="#" onclick="filterProducts('narguilé')">Narguilé</a>
           <a href="#" onclick="filterProducts('cigarro')">Cigarro</a>
+          <a href="#catalogo" onclick="filterProducts('Isqueiros')">Isqueiros</a>
+          <a href="#catalogo" onclick="filterProducts('Bombonieres')">Bombonieres</a>
+          <a href="#catalogo" onclick="filterProducts('Bebidas')">Bebidas</a>
+          <a href="#catalogo" onclick="filterProducts('Incensos')">Incensos</a>
         </div>
       </div>
       <div class="drawer-section">
@@ -182,6 +207,10 @@
         <button class="filter-btn" onclick="filterProducts('Tabacos', this)">Tabacos</button>
         <button class="filter-btn" onclick="filterProducts('Charutos', this)">Charutos</button>
         <button class="filter-btn" onclick="filterProducts('Narguilé', this)">Narguilé</button>
+        <button class="filter-btn" onclick="filterProducts('Isqueiros', this)">Isqueiros</button>
+        <button class="filter-btn" onclick="filterProducts('Bombonieres', this)">Bombonieres</button>
+        <button class="filter-btn" onclick="filterProducts('Bebidas', this)">Bebidas</button>
+        <button class="filter-btn" onclick="filterProducts('Incensos', this)">Incensos</button>
       </div>
 
       <!-- Grid -->
@@ -232,16 +261,12 @@
       <h2 class="section-title">Redes <em>Sociais</em></h2>
       <div class="divider"></div>
       <div class="social-grid">
-        <a href="https://instagram.com/tabacariapremium" class="social-card reveal" target="_blank">
+        <a href="https://www.instagram.com/colmeiagreenof/" class="social-card reveal" target="_blank">
           <span class="social-icon">📸</span>
           <div class="social-name">Instagram</div>
-          <div class="social-handle">@tabacariapremium</div>
+          <div class="social-handle">@colmeiagreenof</div>
         </a>
-        <a href="https://facebook.com/tabacariapremium" class="social-card reveal delay-1" target="_blank">
-          <span class="social-icon">📘</span>
-          <div class="social-name">Facebook</div>
-          <div class="social-handle">/tabacariapremium</div>
-        </a>
+
         <a href="https://wa.me/5531995476577" class="social-card reveal delay-2" target="_blank">
           <span class="social-icon">💬</span>
           <div class="social-name">WhatsApp</div>
