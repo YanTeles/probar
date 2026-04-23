@@ -44,6 +44,11 @@ function buildDist() {
 
   copyDirectory(path.join(root, 'assets'), path.join(dist, 'assets'));
 
+  const htaccess = path.join(root, '.htaccess');
+  if (fs.existsSync(htaccess)) {
+    copyFile(htaccess, path.join(dist, '.htaccess'));
+  }
+
   console.log('Build complete: dist/ generated with static assets.');
 }
 
