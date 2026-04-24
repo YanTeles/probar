@@ -89,24 +89,55 @@ function subscribeToFirestoreProducts() {
   });
 }
 
+// Faz upload de uma imagem para o Storage e retorna a URL pública
+async function uploadImageToStorage(base64, filename) {
+  const storage = firebase.storage();
+  const ref = storage.ref(`products/${filename}`);
+  await ref.putString(base64, 'data_url');
+  return await ref.getDownloadURL();
+}
+
 async function saveProductToFirebase(product) {
   if (!firebaseEnabled || !db) return;
   try {
-    _pendingWrite = true; // bloqueia o listener durante a escrita
-    const id = String(product.id || Date.now());
+    _pendingWrite = true;
+    const id = String(product.id);
+
+    // Faz upload de cada imagem que ainda for base64
+    const uploadedImgs = await Promise.all(
+      (product.imgs || [product.img]).map(async (src, i) => {
+        if (src.startsWith('data:')) {
+          // É base64 — faz upload
+          return await uploadImageToStorage(src, `${id}_${i}_${Date.now()}.jpg`);
+        }
+        return src; // Já é URL, mantém
+      })
+    );
+
+    // Atualiza o produto local com as URLs reais
+    product.img = uploadedImgs[0];
+    product.imgs = uploadedImgs;
+    const idx = adminProducts.findIndex(p => p.id === product.id);
+    if (idx !== -1) adminProducts[idx] = { ...product };
+    localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
+
     await db.collection('products').doc(id).set({
       name: product.name,
       price: product.price,
       category: product.category,
-      img: product.img,
-      imgs: product.imgs || [],
+      img: uploadedImgs[0],
+      imgs: uploadedImgs,
       desc: product.desc
     });
-    console.log(`[Firebase] produto ${product.name} salvo em Firestore.`);
+
+    console.log(`[Firebase] produto ${product.name} salvo com URLs do Storage.`);
+    renderCatalog();
+    renderProducts();
   } catch (error) {
     console.warn('[Firebase] falha ao salvar produto:', error);
+    alert('Erro ao salvar imagem. Verifique as regras do Firebase Storage.');
   } finally {
-    _pendingWrite = false; // libera o listener após a escrita confirmar
+    _pendingWrite = false;
   }
 }
 
@@ -744,7 +775,7 @@ function handleAdminPhotoFiles(files) {
     reader.onload = (ev) => {
       const img = new Image();
       img.onload = () => {
-        const MAX = 600;
+        const MAX = 800;
         let w = img.width, h = img.height;
         if (w > MAX || h > MAX) {
           if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
@@ -754,7 +785,8 @@ function handleAdminPhotoFiles(files) {
         canvas.width = w;
         canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        _adminPendingImgs.push(canvas.toDataURL('image/jpeg', 0.75));
+        // Guarda base64 temporariamente para preview
+        _adminPendingImgs.push(canvas.toDataURL('image/jpeg', 0.80));
         loaded++;
         if (loaded === fileArray.length) renderAdminPhotoGrid();
       };
