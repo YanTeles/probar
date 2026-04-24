@@ -23,6 +23,7 @@ function initFirebase() {
 }
 
 let firestoreUnsubscribe = null;
+let _pendingWrite = false; // flag global, fora da função
 
 async function loadProductsFromFirebase() {
   if (!firebaseEnabled || !db) return;
@@ -60,6 +61,9 @@ function subscribeToFirestoreProducts() {
   if (firestoreUnsubscribe) firestoreUnsubscribe();
 
   firestoreUnsubscribe = db.collection('products').onSnapshot(snapshot => {
+    // Se há uma escrita em andamento, ignora este snapshot intermediário
+    if (_pendingWrite) return;
+
     if (!snapshot.empty) {
       adminProducts = snapshot.docs.map(doc => {
         const data = doc.data();
@@ -75,7 +79,6 @@ function subscribeToFirestoreProducts() {
       });
     } else {
       adminProducts = [];
-      console.log('[Firebase] coleção vazia em tempo real; sem fallback local.');
     }
     localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
     console.log('[Firebase] produtos sincronizados em tempo real.');
@@ -89,6 +92,7 @@ function subscribeToFirestoreProducts() {
 async function saveProductToFirebase(product) {
   if (!firebaseEnabled || !db) return;
   try {
+    _pendingWrite = true; // bloqueia o listener durante a escrita
     const id = String(product.id || Date.now());
     await db.collection('products').doc(id).set({
       name: product.name,
@@ -101,6 +105,8 @@ async function saveProductToFirebase(product) {
     console.log(`[Firebase] produto ${product.name} salvo em Firestore.`);
   } catch (error) {
     console.warn('[Firebase] falha ao salvar produto:', error);
+  } finally {
+    _pendingWrite = false; // libera o listener após a escrita confirmar
   }
 }
 
@@ -729,17 +735,30 @@ function toggleAdminModal() {
 }
 
 function handleAdminPhotoFiles(files) {
-  const fileArray = Array.from(files);
+  const fileArray = Array.from(files).filter(f => f.type.startsWith('image/'));
+  if (fileArray.length === 0) return;
   let loaded = 0;
+
   fileArray.forEach(file => {
-    if (!file.type.startsWith('image/')) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      _adminPendingImgs.push(ev.target.result);
-      loaded++;
-      if (loaded === fileArray.filter(f => f.type.startsWith('image/')).length) {
-        renderAdminPhotoGrid();
-      }
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 600;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else       { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        _adminPendingImgs.push(canvas.toDataURL('image/jpeg', 0.75));
+        loaded++;
+        if (loaded === fileArray.length) renderAdminPhotoGrid();
+      };
+      img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
   });
