@@ -942,7 +942,7 @@ function openProductModal(product) {
       </div>
       <div class="modal-body" style="padding-top:0.5rem;">
         <div style="position:relative;">
-          <img id="product-modal-image" src="${escapeHtml(gallery[0])}" alt="${escapeHtml(product.name)}" style="width:100%;height:260px;object-fit:cover;border-radius:14px;border:1px solid #5b7fa622;" />
+          <img id="product-modal-image" src="${escapeHtml(gallery[0])}" alt="${escapeHtml(product.name)}" style="width:100%;aspect-ratio:1;object-fit:contain;border-radius:14px;border:1px solid #5b7fa622;background:#f5f5f5;" />
           ${hasMultipleImages ? `
             <button id="product-modal-prev" type="button" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:none;border-radius:999px;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;font-size:1rem;">‹</button>
             <button id="product-modal-next" type="button" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:none;border-radius:999px;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;font-size:1rem;">›</button>
