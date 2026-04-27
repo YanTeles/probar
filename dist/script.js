@@ -228,6 +228,39 @@ try {
 // =====================================================
 const AGE_VERIFIED_KEY = 'colmeiaAgeVerified';
 
+function _setBodyScroll(locked) {
+  document.body.classList.toggle('age-locked', locked);
+}
+
+function _trapFocus(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const focusables = container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  if (focusables.length === 0) return;
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  first.focus();
+  container._focusTrap = function(e) {
+    if (e.key !== 'Tab') return;
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+  container.addEventListener('keydown', container._focusTrap);
+}
+
+function _untrapFocus(containerId) {
+  const container = document.getElementById(containerId);
+  if (container && container._focusTrap) {
+    container.removeEventListener('keydown', container._focusTrap);
+    delete container._focusTrap;
+  }
+}
+
 function confirmAge(isAdult) {
   const gate     = document.getElementById('age-gate');
   const mainSite = document.getElementById('main-site');
@@ -235,11 +268,31 @@ function confirmAge(isAdult) {
   if (isAdult) {
     try { localStorage.setItem(AGE_VERIFIED_KEY, 'yes'); } catch (e) {}
     if (gate)     gate.style.display = 'none';
-    if (mainSite) { mainSite.classList.remove('hidden'); mainSite.style.display = 'block'; }
+    if (warning)  warning.style.display = 'none';
+    if (mainSite) {
+      mainSite.classList.remove('hidden');
+      mainSite.style.display = 'block';
+    }
+    _setBodyScroll(false);
+    _untrapFocus('age-gate');
   } else {
     if (gate)    gate.style.display    = 'none';
     if (warning) warning.style.display = 'flex';
+    _setBodyScroll(true);
+    _untrapFocus('age-gate');
+    _trapFocus('age-warning');
   }
+}
+
+function resetAgeGate() {
+  const gate     = document.getElementById('age-gate');
+  const warning  = document.getElementById('age-warning');
+  if (warning) warning.style.display = 'none';
+  if (gate) {
+    gate.style.display = 'flex';
+    _trapFocus('age-gate');
+  }
+  _setBodyScroll(true);
 }
 
 function initAgeGate() {
@@ -256,11 +309,21 @@ function initAgeGate() {
     gate.style.display = 'none';
     mainSite.classList.remove('hidden');
     mainSite.style.display = 'block';
+    _setBodyScroll(false);
   } else {
     gate.style.display = 'flex';
     mainSite.classList.add('hidden');
     mainSite.style.display = 'none';
+    _setBodyScroll(true);
+    _trapFocus('age-gate');
   }
+
+  // Previne fechar com ESC
+  document.addEventListener('keydown', function ageEsc(e) {
+    if (e.key === 'Escape' && gate && gate.style.display !== 'none') {
+      e.preventDefault();
+    }
+  });
 }
 
 // =====================================================

@@ -351,6 +351,10 @@ a,
 .product-card {
   cursor: pointer !important;
 }
+body.age-locked {
+  overflow: hidden;
+}
+
 .age-warning {
   display: none;
   position: fixed;
@@ -379,6 +383,25 @@ a,
   font-family: "Cormorant Garamond", serif;
   font-size: 1.05rem;
   line-height: 1.7;
+}
+.btn-age-back {
+  margin-top: 1rem;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid #d0d0d055;
+  padding: 0.85rem 1.5rem;
+  font-family: "Montserrat", sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+  min-height: 48px;
+}
+.btn-age-back:hover {
+  border-color: var(--accent);
+  color: var(--cream);
 }
 
 /* ===== MAIN SITE ===== */
