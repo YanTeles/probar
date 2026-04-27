@@ -42,12 +42,6 @@ function _mapDoc(doc) {
   };
 }
 
-/**
- * Inicia o listener do Firestore.
- * Usa snapshot.metadata.fromCache para distinguir
- * cache local (ignorado) de dados reais do servidor.
- * Retorna Promise que resolve quando o servidor responde.
- */
 function subscribeFirestore() {
   return new Promise((resolve) => {
     if (!firebaseEnabled || !db) { resolve(); return; }
@@ -60,7 +54,6 @@ function subscribeFirestore() {
       (snap) => {
         const fromServer = !snap.metadata.fromCache;
 
-        // --- Primeira resposta: só aceita dados do servidor ---
         if (!resolved) {
           if (!fromServer) {
             console.log('[Firebase] Cache local ignorado, aguardando servidor...');
@@ -82,7 +75,6 @@ function subscribeFirestore() {
           return;
         }
 
-        // --- Atualizações em tempo real após a carga inicial ---
         if (_pendingWrite || !fromServer) return;
         if (snap.empty) return;
 
@@ -103,7 +95,6 @@ function subscribeFirestore() {
       }
     );
 
-    // Timeout de segurança: 8s sem resposta do servidor → usa localStorage
     setTimeout(() => {
       if (!resolved) {
         resolved = true;
@@ -224,10 +215,8 @@ try {
 } catch (e) { cartItems = []; }
 
 // =====================================================
-// AGE GATE
+// AGE GATE — sempre aparece ao carregar a página
 // =====================================================
-const AGE_VERIFIED_KEY = 'colmeiaAgeVerified';
-
 function _setBodyScroll(locked) {
   document.body.classList.toggle('age-locked', locked);
 }
@@ -266,7 +255,7 @@ function confirmAge(isAdult) {
   const mainSite = document.getElementById('main-site');
   const warning  = document.getElementById('age-warning');
   if (isAdult) {
-    try { localStorage.setItem(AGE_VERIFIED_KEY, 'yes'); } catch (e) {}
+    // Não salva no localStorage — gate sempre aparece na próxima visita
     if (gate)     gate.style.display = 'none';
     if (warning)  warning.style.display = 'none';
     if (mainSite) {
@@ -301,24 +290,16 @@ function initAgeGate() {
   const warning  = document.getElementById('age-warning');
   if (!gate || !mainSite) return;
 
-  let verified = false;
-  try { verified = localStorage.getItem(AGE_VERIFIED_KEY) === 'yes'; } catch (e) {}
   if (warning) warning.style.display = 'none';
 
-  if (verified) {
-    gate.style.display = 'none';
-    mainSite.classList.remove('hidden');
-    mainSite.style.display = 'block';
-    _setBodyScroll(false);
-  } else {
-    gate.style.display = 'flex';
-    mainSite.classList.add('hidden');
-    mainSite.style.display = 'none';
-    _setBodyScroll(true);
-    _trapFocus('age-gate');
-  }
+  // Sempre exibe o gate — sem verificar localStorage
+  gate.style.display = 'flex';
+  mainSite.classList.add('hidden');
+  mainSite.style.display = 'none';
+  _setBodyScroll(true);
+  _trapFocus('age-gate');
 
-  // Previne fechar com ESC
+  // Impede fechar com ESC
   document.addEventListener('keydown', function ageEsc(e) {
     if (e.key === 'Escape' && gate && gate.style.display !== 'none') {
       e.preventDefault();
