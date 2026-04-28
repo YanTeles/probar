@@ -1,157 +1,66 @@
 // =====================================================
-// FIREBASE
+// API / HOSTINGER
 // =====================================================
-let firebaseEnabled = false;
-let db = null;
+const API_URL = ''; // mesmo origin — server.js serve os arquivos estáticos
 
-function isFirebaseConfigured() {
-  return window.firebaseConfig &&
-    window.firebaseConfig.apiKey &&
-    !window.firebaseConfig.apiKey.includes('REPLACE');
-}
-
-function initFirebase() {
-  if (!isFirebaseConfigured()) {
-    console.warn('[Firebase] Config ausente. Modo local ativado.');
-    return;
-  }
+async function loadProductsFromAPI() {
   try {
-    firebase.initializeApp(window.firebaseConfig);
-    db = firebase.firestore();
-    firebaseEnabled = true;
-    console.log('[Firebase] OK.');
-  } catch (e) {
-    console.warn('[Firebase] Falha ao inicializar:', e);
-  }
-}
+    const res = await fetch(`${API_URL}/api/products`);
+    if (!res.ok) throw new Error('Erro ao carregar produtos');
+    const data = await res.json();
 
-let firestoreUnsubscribe = null;
-let _pendingWrite = false;
-
-function _mapDoc(doc) {
-  const d = doc.data();
-  return {
-    id:       Number(doc.id) || Date.now(),
-    name:     d.name     || '',
-    price:    parseFloat(d.price) || 0,
-    category: d.category || '',
-    img:      d.img      || 'assets/produtos/tabacaria.jpeg',
-    imgs:     d.imgs     || [],
-    desc:     d.desc     || ''
-  };
-}
-
-function subscribeFirestore() {
-  return new Promise((resolve) => {
-    if (!firebaseEnabled || !db) { resolve(); return; }
-    if (firestoreUnsubscribe) firestoreUnsubscribe();
-
-    let resolved = false;
-
-    firestoreUnsubscribe = db.collection('products').onSnapshot(
-      (snap) => {
-        if (!snap.empty) {
-          adminProducts = snap.docs.map(_mapDoc);
-          _saveLocal();
-          console.log('[Firebase] Produtos carregados:', adminProducts.length);
-          renderCatalog();
-          renderProducts();
-        } else {
-          console.warn('[Firebase] Nenhum produto no Firestore.');
-        }
-        if (!resolved) { resolved = true; resolve(); }
-      },
-      (err) => {
-        console.warn('[Firebase] Erro no listener:', err);
-        if (!resolved) { resolved = true; resolve(); }
-      }
-    );
-
-    setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        console.warn('[Firebase] Timeout — usando dados locais.');
-        resolve();
-      }
-    }, 10000);
-  });
-}
-
-// Upload com timeout de 30s para não travar infinitamente
-function uploadImageToStorage(base64, filename) {
-  return new Promise(async (resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error('Timeout no upload da imagem.'));
-    }, 30000);
-    try {
-      const ref = firebase.storage().ref(`products/${filename}`);
-      await ref.putString(base64, 'data_url');
-      const url = await ref.getDownloadURL();
-      clearTimeout(timer);
-      resolve(url);
-    } catch (e) {
-      clearTimeout(timer);
-      reject(e);
+    if (Array.isArray(data) && data.length > 0) {
+      adminProducts = data.map(p => ({
+        id:       Number(p.id) || Date.now(),
+        name:     p.name     || '',
+        price:    parseFloat(p.price) || 0,
+        category: p.category || '',
+        img:      p.img      || 'assets/produtos/tabacaria.jpeg',
+        imgs:     (typeof p.imgs === 'string' ? JSON.parse(p.imgs) : p.imgs) || [],
+        desc:     p.desc     || ''
+      }));
+      _saveLocal();
+      console.log('[API] Produtos carregados:', adminProducts.length);
+      renderCatalog();
+      renderProducts();
+    } else {
+      console.warn('[API] Nenhum produto retornado pelo servidor.');
     }
-  });
-}
-
-async function saveProductToFirebase(product) {
-  if (!firebaseEnabled || !db) return;
-  _pendingWrite = true;
-  try {
-    const id   = String(product.id);
-    const srcs = (product.imgs && product.imgs.length > 0) ? product.imgs : [product.img];
-
-    const urls = await Promise.all(srcs.map(async (src, i) => {
-      if (src && src.startsWith('data:')) {
-        return await uploadImageToStorage(src, `${id}_${i}_${Date.now()}.jpg`);
-      }
-      return src;
-    }));
-
-    product.img  = urls[0];
-    product.imgs = urls;
-
-    const idx = adminProducts.findIndex(p => p.id === product.id);
-    if (idx !== -1) adminProducts[idx] = { ...product };
-    _saveLocal();
-
-    await db.collection('products').doc(id).set({
-      name:     product.name,
-      price:    product.price,
-      category: product.category,
-      img:      urls[0],
-      imgs:     urls,
-      desc:     product.desc
-    });
-
-    console.log('[Firebase] Produto salvo:', product.name);
-    renderCatalog();
-    renderProducts();
-  } finally {
-    setTimeout(() => { _pendingWrite = false; }, 2500);
+  } catch (err) {
+    console.warn('[API] Falha ao carregar produtos:', err);
+    // mantém localStorage já carregado em adminProducts
   }
 }
 
-async function deleteProductFromFirebase(id) {
-  if (!firebaseEnabled || !db) return;
+async function saveProductToAPI(product) {
   try {
-    _pendingWrite = true;
-    await db.collection('products').doc(String(id)).delete();
-    console.log('[Firebase] Produto excluído:', id);
-  } catch (e) {
-    console.warn('[Firebase] Erro ao excluir:', e);
-  } finally {
-    setTimeout(() => { _pendingWrite = false; }, 2500);
+    const res = await fetch(`${API_URL}/api/products`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(product)
+    });
+    if (!res.ok) throw new Error('Erro ao salvar produto');
+    console.log('[API] Produto salvo:', product.name);
+    await loadProductsFromAPI();
+  } catch (err) {
+    console.warn('[API] Erro ao salvar produto:', err);
+    throw err;
+  }
+}
+
+async function deleteProductFromAPI(id) {
+  try {
+    const res = await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Erro ao excluir produto');
+    console.log('[API] Produto excluído:', id);
+    await loadProductsFromAPI();
+  } catch (err) {
+    console.warn('[API] Erro ao excluir produto:', err);
   }
 }
 
 async function loadProducts() {
-  initFirebase();
-  if (firebaseEnabled) {
-    await subscribeFirestore();
-  }
+  await loadProductsFromAPI();
 }
 
 // =====================================================
@@ -802,9 +711,7 @@ function toggleAdminModal() {
       adminProducts.push(newProduct);
       _saveLocal();
 
-      if (firebaseEnabled) {
-        await saveProductToFirebase(newProduct);
-      }
+      await saveProductToAPI(newProduct);
 
       alert('✅ Produto adicionado com sucesso!');
       _adminPendingImgs = [];
@@ -814,7 +721,7 @@ function toggleAdminModal() {
       renderCatalog();
     } catch (err) {
       console.error('[Admin] Erro ao salvar produto:', err);
-      alert('❌ Erro ao salvar: ' + (err.message || 'Verifique as regras do Firebase Storage e Firestore.'));
+      alert('❌ Erro ao salvar: ' + (err.message || 'Verifique a conexão com o servidor.'));
     } finally {
       // SEMPRE reseta o botão, mesmo em erro
       _resetSubmitBtn(submitBtn);
@@ -884,15 +791,209 @@ function renderProducts() {
         <p>${escapeHtml(p.desc)}</p>
       </div>
       <div class="product-actions">
+        <button class="action-btn" style="background:rgba(16,185,129,.18);color:#a7f3d0;" onclick="editProduct(${p.id})">Editar</button>
         <button class="action-btn delete" onclick="deleteProduct(${p.id})">Excluir</button>
       </div>
     </div>`).join('');
 }
 
+function editProduct(id) {
+  const product = adminProducts.find(p => p.id === id);
+  if (!product) return;
+
+  // Fecha o modal atual e abre um novo para edição
+  closeAdminModal();
+
+  _adminPendingImgs = product.imgs && product.imgs.length > 0 ? [...product.imgs] : [product.img];
+
+  const catOpts = CATEGORIES.map(c =>
+    `<option value="${c}" ${c === product.category ? 'selected' : ''}>${c}</option>`
+  ).join('');
+
+  const modal = document.createElement('div');
+  modal.id = 'adminModal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem;overflow:auto;';
+
+  modal.innerHTML = `
+    <style>
+      #adminModal .admin-modal-box{width:min(720px,100%);max-height:92vh;overflow:auto}
+      #adminModal .admin-panel-header{display:flex;justify-content:space-between;gap:1rem;align-items:center;margin-bottom:1.75rem}
+      #adminModal .admin-panel-header h2{margin:0;color:#f8fafc;font-size:1.95rem}
+      #adminModal .admin-panel-header p{margin:0;color:#94a3b8;font-size:.95rem}
+      #adminModal .admin-panel-actions{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:flex-end}
+      #adminModal .admin-panel-actions button{border:none;border-radius:.85rem;padding:.75rem 1rem;font-weight:700;cursor:pointer}
+      #adminModal .logout-btn{background:#ef4444;color:#fff}
+      #adminModal .close-btn{background:rgba(255,255,255,.08);color:#e2e8f0;font-size:1.2rem;width:42px;height:42px}
+      #adminModal .admin-panel-block{border-radius:1.75rem;background:#0d1117;border:1px solid rgba(255,255,255,.09);padding:1.75rem;box-shadow:0 22px 70px rgba(0,0,0,.3)}
+      #adminModal .admin-panel-block+.admin-panel-block{margin-top:1.5rem}
+      #adminModal .admin-panel-block h3{margin:0 0 1rem;color:#10b981;font-size:1.25rem}
+      #adminModal .admin-panel-block form{display:grid;gap:1rem}
+      #adminModal .field-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+      #adminModal .admin-input,#adminModal .admin-select,#adminModal .admin-textarea{width:100%;border-radius:1rem;border:1px solid rgba(255,255,255,.08);background:#111827;color:#e2e8f0;padding:1rem 1.1rem;font-size:.96rem;outline:none;box-sizing:border-box}
+      #adminModal .admin-input:focus,#adminModal .admin-select:focus,#adminModal .admin-textarea:focus{border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.14)}
+      #adminModal .upload-zone{border:2px dashed rgba(16,185,129,.4);border-radius:1.2rem;background:rgba(16,185,129,.04);padding:1.5rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+      #adminModal .upload-zone:hover{border-color:#10b981;background:rgba(16,185,129,.09)}
+      #adminModal .upload-zone .uz-icon{font-size:2rem;margin-bottom:.5rem}
+      #adminModal .upload-zone p{color:#94a3b8;margin:0;font-size:.9rem}
+      #adminModal .upload-zone span{color:#10b981;font-weight:700}
+      #adminModal .photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:.75rem;margin-top:.75rem}
+      #adminModal .photo-thumb{position:relative;aspect-ratio:1;border-radius:.85rem;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:#090b10}
+      #adminModal .photo-thumb img{width:100%;height:100%;object-fit:cover}
+      #adminModal .thumb-remove{position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(239,68,68,.85);border:none;border-radius:50%;color:#fff;font-size:.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+      #adminModal .thumb-badge{position:absolute;bottom:4px;left:4px;background:rgba(16,185,129,.9);color:#fff;font-size:.65rem;font-weight:700;padding:2px 6px;border-radius:999px}
+      #adminModal .admin-submit{width:100%;border-radius:1.5rem;border:none;background:#0f766e;color:#f8fafc;font-weight:800;padding:1.15rem 1.35rem;font-size:1.03rem;display:inline-flex;align-items:center;justify-content:center;gap:.75rem;transition:transform .22s,background .22s,box-shadow .22s;box-shadow:0 18px 32px rgba(16,185,129,.18);cursor:pointer}
+      #adminModal .admin-submit:hover{background:#10b981;transform:scale(1.02);box-shadow:0 24px 40px rgba(16,185,129,.32)}
+      #adminModal .admin-submit:disabled{opacity:0.7;cursor:not-allowed;transform:none}
+      @media(max-width:720px){
+        #adminModal .admin-panel-block{padding:1.25rem}
+        #adminModal .admin-panel-header{flex-direction:column;align-items:flex-start}
+        #adminModal .field-row{grid-template-columns:1fr}
+      }
+    </style>
+    <div class="admin-modal-box">
+      <div class="admin-panel-header">
+        <div>
+          <h2>Editar Produto</h2>
+          <p>Altere os dados do produto e salve.</p>
+        </div>
+        <div class="admin-panel-actions">
+          <button class="logout-btn" onclick="logoutAdmin()">Sair</button>
+          <button class="close-btn"  onclick="closeAdminModal()">×</button>
+        </div>
+      </div>
+
+      <div class="admin-panel-block">
+        <h3>✏️ Editar: ${escapeHtml(product.name)}</h3>
+        <form id="editForm">
+          <input id="ep-name" class="admin-input" placeholder="Nome do produto" value="${escapeHtml(product.name)}" required />
+          <div class="field-row">
+            <input id="ep-price" class="admin-input" type="number" step="0.01" placeholder="Preço R$" value="${product.price}" required />
+            <select id="ep-category" class="admin-select">${catOpts}</select>
+          </div>
+          <div>
+            <div class="upload-zone" id="ep-upload-zone">
+              <div class="uz-icon">🖼️</div>
+              <p>Arraste novas imagens aqui ou <span>clique para selecionar</span></p>
+              <p style="font-size:.8rem;margin-top:.35rem;">Adicionar substitui as atuais — a primeira será a capa</p>
+            </div>
+            <input id="ep-photos" type="file" accept="image/*" multiple style="display:none;" />
+            <div class="photos-grid" id="ep-photos-grid"></div>
+          </div>
+          <textarea id="ep-desc" class="admin-textarea" placeholder="Descrição (opcional)" rows="4">${escapeHtml(product.desc || '')}</textarea>
+          <button type="submit" class="admin-submit" id="ep-submit-btn">
+            💾 Salvar Alterações
+          </button>
+        </form>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+
+  modal.addEventListener('click', e => { if (e.target.id === 'adminModal') closeAdminModal(); });
+
+  // Renderizar miniaturas atuais
+  renderEditPhotoGrid();
+
+  const zone = document.getElementById('ep-upload-zone');
+  zone.addEventListener('click', () => document.getElementById('ep-photos').click());
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#10b981'; });
+  zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.style.borderColor = '';
+    handleEditPhotoFiles(e.dataTransfer.files);
+  });
+
+  document.getElementById('ep-photos').addEventListener('change', e => {
+    handleEditPhotoFiles(e.target.files); e.target.value = '';
+  });
+
+  document.getElementById('editForm').onsubmit = async (e) => {
+    e.preventDefault();
+    if (_adminPendingImgs.length === 0) { alert('Adicione ao menos uma foto.'); return; }
+
+    const submitBtn = document.getElementById('ep-submit-btn');
+    submitBtn.textContent = 'Salvando...';
+    submitBtn.disabled = true;
+
+    const updatedProduct = {
+      id:       product.id,
+      name:     document.getElementById('ep-name').value.trim(),
+      price:    parseFloat(document.getElementById('ep-price').value),
+      category: document.getElementById('ep-category').value,
+      img:      _adminPendingImgs[0],
+      imgs:     [..._adminPendingImgs],
+      desc:     document.getElementById('ep-desc').value.trim()
+    };
+
+    try {
+      const idx = adminProducts.findIndex(p => p.id === product.id);
+      if (idx !== -1) adminProducts[idx] = updatedProduct;
+      _saveLocal();
+
+      await saveProductToAPI(updatedProduct);
+
+      alert('✅ Produto atualizado com sucesso!');
+      _adminPendingImgs = [];
+      renderProducts();
+      renderCatalog();
+      closeAdminModal();
+    } catch (err) {
+      console.error('[Admin] Erro ao atualizar produto:', err);
+      alert('❌ Erro ao salvar: ' + (err.message || 'Verifique a conexão com o servidor.'));
+      submitBtn.textContent = '💾 Salvar Alterações';
+      submitBtn.disabled = false;
+    }
+  };
+}
+
+function renderEditPhotoGrid() {
+  const grid = document.getElementById('ep-photos-grid');
+  if (!grid) return;
+  grid.innerHTML = _adminPendingImgs.map((src, i) => `
+    <div class="photo-thumb">
+      <img src="${escapeHtml(src)}" alt="Foto ${i + 1}" />
+      ${i === 0 ? '<span class="thumb-badge">Capa</span>' : ''}
+      <button class="thumb-remove" onclick="removeEditPendingPhoto(${i})">×</button>
+    </div>`).join('');
+}
+
+function removeEditPendingPhoto(i) {
+  _adminPendingImgs.splice(i, 1);
+  renderEditPhotoGrid();
+}
+
+function handleEditPhotoFiles(files) {
+  const arr = Array.from(files).filter(f => f.type.startsWith('image/'));
+  if (!arr.length) return;
+  let done = 0;
+  arr.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 800;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else       { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        _adminPendingImgs.push(canvas.toDataURL('image/jpeg', 0.80));
+        if (++done === arr.length) renderEditPhotoGrid();
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function deleteProduct(id) {
   adminProducts = adminProducts.filter(p => p.id !== id);
   _saveLocal();
-  if (firebaseEnabled) deleteProductFromFirebase(id);
+  deleteProductFromAPI(id);
   renderProducts();
   renderCatalog();
 }

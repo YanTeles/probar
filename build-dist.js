@@ -33,7 +33,7 @@ function buildDist() {
   }
   fs.mkdirSync(dist, { recursive: true });
 
-  const staticFiles = ['index.html', 'style.css', 'script.js', 'firebase-config.js'];
+  const staticFiles = ['index.html', 'style.css', 'script.js'];
   for (const file of staticFiles) {
     const src = path.join(root, file);
     const dest = path.join(dist, file);
