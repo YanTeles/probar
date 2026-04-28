@@ -1,1 +1,0 @@
-# Firebase Sync Fix\n\n## Problema\nAdicionar celular → não sync PC\n\n## Fix\n1. Auto-call `subscribeToFirestoreProducts()` após init\n2. Force `renderCatalog()` em snapshot\n3. Debug logs\n\n## Teste\n- Celular admin → PC atualiza real-time
