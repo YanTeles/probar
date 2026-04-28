@@ -34,14 +34,17 @@ async function loadProductsFromAPI() {
 
 async function saveProductToAPI(product) {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     const res = await fetch(`${API_URL}/api/products`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(product)
+      body: JSON.stringify(product),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     if (!res.ok) throw new Error('Erro ao salvar produto');
     console.log('[API] Produto salvo:', product.name);
-    await loadProductsFromAPI();
   } catch (err) {
     console.warn('[API] Erro ao salvar produto:', err);
     throw err;
@@ -50,10 +53,12 @@ async function saveProductToAPI(product) {
 
 async function deleteProductFromAPI(id) {
   try {
-    const res = await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const res = await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE', signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!res.ok) throw new Error('Erro ao excluir produto');
     console.log('[API] Produto excluído:', id);
-    await loadProductsFromAPI();
   } catch (err) {
     console.warn('[API] Erro ao excluir produto:', err);
   }
