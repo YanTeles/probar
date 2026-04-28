@@ -27,12 +27,11 @@ function initFirebase() {
 
 let firestoreUnsubscribe = null;
 let _pendingWrite = false;
-let _snapshotDebounce = null;
 
 function _mapDoc(doc) {
   const d = doc.data();
   return {
-    id: Number(doc.id) || Date.now(),
+    id:       Number(doc.id) || Date.now(),
     name:     d.name     || '',
     price:    parseFloat(d.price) || 0,
     category: d.category || '',
@@ -50,44 +49,17 @@ function subscribeFirestore() {
     let resolved = false;
 
     firestoreUnsubscribe = db.collection('products').onSnapshot(
-      { includeMetadataChanges: true },
       (snap) => {
-        const fromServer = !snap.metadata.fromCache;
-
-        if (!resolved) {
-          if (!fromServer) {
-            console.log('[Firebase] Cache local ignorado, aguardando servidor...');
-            return;
-          }
-          resolved = true;
-
-          if (!snap.empty) {
-            adminProducts = snap.docs.map(_mapDoc);
-            _saveLocal();
-            console.log('[Firebase] Carregado do servidor:', adminProducts.length, 'produtos.');
-          } else {
-            console.warn('[Firebase] Servidor respondeu vazio — mantendo localStorage.');
-          }
-
-          renderCatalog();
-          renderProducts();
-          resolve();
-          return;
-        }
-
-        if (_pendingWrite || !fromServer) return;
-        if (snap.empty) return;
-
-        const docs = snap.docs.map(_mapDoc);
-        clearTimeout(_snapshotDebounce);
-        _snapshotDebounce = setTimeout(() => {
-          if (_pendingWrite) return;
-          adminProducts = docs;
+        if (!snap.empty) {
+          adminProducts = snap.docs.map(_mapDoc);
           _saveLocal();
-          console.log('[Firebase] Sincronizado:', adminProducts.length, 'produtos.');
+          console.log('[Firebase] Produtos carregados:', adminProducts.length);
           renderCatalog();
           renderProducts();
-        }, 400);
+        } else {
+          console.warn('[Firebase] Nenhum produto no Firestore.');
+        }
+        if (!resolved) { resolved = true; resolve(); }
       },
       (err) => {
         console.warn('[Firebase] Erro no listener:', err);
@@ -101,21 +73,34 @@ function subscribeFirestore() {
         console.warn('[Firebase] Timeout — usando dados locais.');
         resolve();
       }
-    }, 8000);
+    }, 10000);
   });
 }
 
-async function uploadImageToStorage(base64, filename) {
-  const ref = firebase.storage().ref(`products/${filename}`);
-  await ref.putString(base64, 'data_url');
-  return await ref.getDownloadURL();
+// Upload com timeout de 30s para não travar infinitamente
+function uploadImageToStorage(base64, filename) {
+  return new Promise(async (resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error('Timeout no upload da imagem.'));
+    }, 30000);
+    try {
+      const ref = firebase.storage().ref(`products/${filename}`);
+      await ref.putString(base64, 'data_url');
+      const url = await ref.getDownloadURL();
+      clearTimeout(timer);
+      resolve(url);
+    } catch (e) {
+      clearTimeout(timer);
+      reject(e);
+    }
+  });
 }
 
 async function saveProductToFirebase(product) {
   if (!firebaseEnabled || !db) return;
+  _pendingWrite = true;
   try {
-    _pendingWrite = true;
-    const id = String(product.id);
+    const id   = String(product.id);
     const srcs = (product.imgs && product.imgs.length > 0) ? product.imgs : [product.img];
 
     const urls = await Promise.all(srcs.map(async (src, i) => {
@@ -133,17 +118,17 @@ async function saveProductToFirebase(product) {
     _saveLocal();
 
     await db.collection('products').doc(id).set({
-      name: product.name, price: product.price,
-      category: product.category, img: urls[0],
-      imgs: urls, desc: product.desc
+      name:     product.name,
+      price:    product.price,
+      category: product.category,
+      img:      urls[0],
+      imgs:     urls,
+      desc:     product.desc
     });
 
     console.log('[Firebase] Produto salvo:', product.name);
     renderCatalog();
     renderProducts();
-  } catch (e) {
-    console.warn('[Firebase] Erro ao salvar:', e);
-    alert('Erro ao salvar imagem. Verifique as regras do Firebase Storage.');
   } finally {
     setTimeout(() => { _pendingWrite = false; }, 2500);
   }
@@ -204,7 +189,7 @@ const CATEGORIES = [
 // =====================================================
 // ESTADO GLOBAL
 // =====================================================
-let adminProducts  = _loadLocal();
+let adminProducts   = _loadLocal();
 let catalogCategory = 'all';
 let adminLoggedIn   = localStorage.getItem('adminLoggedIn') === 'true';
 
@@ -227,16 +212,14 @@ function _trapFocus(containerId) {
   const focusables = container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
   if (focusables.length === 0) return;
   const first = focusables[0];
-  const last = focusables[focusables.length - 1];
+  const last  = focusables[focusables.length - 1];
   first.focus();
   container._focusTrap = function(e) {
     if (e.key !== 'Tab') return;
     if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
+      e.preventDefault(); last.focus();
     } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
+      e.preventDefault(); first.focus();
     }
   };
   container.addEventListener('keydown', container._focusTrap);
@@ -255,7 +238,6 @@ function confirmAge(isAdult) {
   const mainSite = document.getElementById('main-site');
   const warning  = document.getElementById('age-warning');
   if (isAdult) {
-    // Não salva no localStorage — gate sempre aparece na próxima visita
     if (gate)     gate.style.display = 'none';
     if (warning)  warning.style.display = 'none';
     if (mainSite) {
@@ -274,8 +256,8 @@ function confirmAge(isAdult) {
 }
 
 function resetAgeGate() {
-  const gate     = document.getElementById('age-gate');
-  const warning  = document.getElementById('age-warning');
+  const gate    = document.getElementById('age-gate');
+  const warning = document.getElementById('age-warning');
   if (warning) warning.style.display = 'none';
   if (gate) {
     gate.style.display = 'flex';
@@ -292,14 +274,12 @@ function initAgeGate() {
 
   if (warning) warning.style.display = 'none';
 
-  // Sempre exibe o gate — sem verificar localStorage
   gate.style.display = 'flex';
   mainSite.classList.add('hidden');
   mainSite.style.display = 'none';
   _setBodyScroll(true);
   _trapFocus('age-gate');
 
-  // Impede fechar com ESC
   document.addEventListener('keydown', function ageEsc(e) {
     if (e.key === 'Escape' && gate && gate.style.display !== 'none') {
       e.preventDefault();
@@ -362,8 +342,8 @@ function updateStoreStatus() {
     .filter(Boolean)
     .forEach(el => {
       el.classList.remove('status-open', 'status-closed');
-      if (isOpen) { el.classList.add('status-open');   el.textContent = 'Aberto agora'; }
-      else        { el.classList.add('status-closed');  el.textContent = 'Fechado'; }
+      if (isOpen) { el.classList.add('status-open');  el.textContent = 'Aberto agora'; }
+      else        { el.classList.add('status-closed'); el.textContent = 'Fechado'; }
     });
 }
 
@@ -478,10 +458,10 @@ function closeCheckout() {
 
 function sendToWhatsApp() {
   if (cartItems.length === 0) { alert('Seu carrinho está vazio.'); return; }
-  const nome     = document.getElementById('field-nome')?.value.trim()    || '';
-  const cpf      = document.getElementById('field-cpf')?.value.trim()     || '';
-  const telefone = document.getElementById('field-telefone')?.value.trim()|| '';
-  const endereco = document.getElementById('field-endereco')?.value.trim()|| '';
+  const nome     = document.getElementById('field-nome')?.value.trim()     || '';
+  const cpf      = document.getElementById('field-cpf')?.value.trim()      || '';
+  const telefone = document.getElementById('field-telefone')?.value.trim() || '';
+  const endereco = document.getElementById('field-endereco')?.value.trim() || '';
   const storeNumber = '5531995476577';
   const itens = cartItems.map(i =>
     `- ${i.quantity}x ${i.name} (R$ ${i.price.toFixed(2).replace('.', ',')})`
@@ -527,8 +507,8 @@ function filterProducts(tag, btnEl) {
   renderCatalog();
 }
 
-function handleSearch()      { renderCatalog(); }
-function loadMoreProducts()  {}
+function handleSearch()     { renderCatalog(); }
+function loadMoreProducts() {}
 
 // =====================================================
 // CATÁLOGO — RENDER
@@ -588,8 +568,8 @@ function toggleProduct(id) {
 
 function openProductModal(product) {
   closeProductModal();
-  const overlay  = document.createElement('div');
-  overlay.id     = 'product-modal';
+  const overlay     = document.createElement('div');
+  overlay.id        = 'product-modal';
   overlay.className = 'modal-overlay open';
   const gallery  = (product.imgs?.length > 0) ? product.imgs : [product.img];
   const safeDesc = (product.desc?.trim())
@@ -663,6 +643,11 @@ function closeProductModal() {
 // =====================================================
 let _adminPendingImgs = [];
 
+function _resetSubmitBtn(btn) {
+  btn.innerHTML = '<span style="font-size:1.4rem;line-height:1;">+</span>Adicionar Produto';
+  btn.disabled  = false;
+}
+
 function toggleAdminModal() {
   if (!adminLoggedIn) {
     const pass = prompt('Senha Admin:', '');
@@ -707,6 +692,7 @@ function toggleAdminModal() {
       #adminModal .thumb-badge{position:absolute;bottom:4px;left:4px;background:rgba(16,185,129,.9);color:#fff;font-size:.65rem;font-weight:700;padding:2px 6px;border-radius:999px}
       #adminModal .admin-submit{width:100%;border-radius:1.5rem;border:none;background:#0f766e;color:#f8fafc;font-weight:800;padding:1.15rem 1.35rem;font-size:1.03rem;display:inline-flex;align-items:center;justify-content:center;gap:.75rem;transition:transform .22s,background .22s,box-shadow .22s;box-shadow:0 18px 32px rgba(16,185,129,.18);cursor:pointer}
       #adminModal .admin-submit:hover{background:#10b981;transform:scale(1.02);box-shadow:0 24px 40px rgba(16,185,129,.32)}
+      #adminModal .admin-submit:disabled{opacity:0.7;cursor:not-allowed;transform:none}
       #adminModal .products-list-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}
       #adminModal .products-list-header .badge{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem .95rem;border-radius:999px;background:rgba(212,175,55,.14);border:1px solid rgba(212,175,55,.22);color:#f8e6ad;font-size:.85rem}
       #adminModal .products-grid{display:grid;gap:1rem;max-height:330px;overflow:auto}
@@ -794,9 +780,14 @@ function toggleAdminModal() {
     handleAdminPhotoFiles(e.target.files); e.target.value = '';
   });
 
-  document.getElementById('addForm').onsubmit = e => {
+  document.getElementById('addForm').onsubmit = async (e) => {
     e.preventDefault();
     if (_adminPendingImgs.length === 0) { alert('Adicione ao menos uma foto.'); return; }
+
+    const submitBtn = e.target.querySelector('.admin-submit');
+    submitBtn.textContent = 'Salvando...';
+    submitBtn.disabled = true;
+
     const newProduct = {
       id:       Date.now(),
       name:     document.getElementById('ap-name').value.trim(),
@@ -806,15 +797,28 @@ function toggleAdminModal() {
       imgs:     [..._adminPendingImgs],
       desc:     document.getElementById('ap-desc').value.trim()
     };
-    adminProducts.push(newProduct);
-    _saveLocal();
-    if (firebaseEnabled) saveProductToFirebase(newProduct);
-    alert('✅ Produto adicionado com sucesso!');
-    _adminPendingImgs = [];
-    renderAdminPhotoGrid();
-    document.getElementById('addForm').reset();
-    renderProducts();
-    renderCatalog();
+
+    try {
+      adminProducts.push(newProduct);
+      _saveLocal();
+
+      if (firebaseEnabled) {
+        await saveProductToFirebase(newProduct);
+      }
+
+      alert('✅ Produto adicionado com sucesso!');
+      _adminPendingImgs = [];
+      renderAdminPhotoGrid();
+      document.getElementById('addForm').reset();
+      renderProducts();
+      renderCatalog();
+    } catch (err) {
+      console.error('[Admin] Erro ao salvar produto:', err);
+      alert('❌ Erro ao salvar: ' + (err.message || 'Verifique as regras do Firebase Storage e Firestore.'));
+    } finally {
+      // SEMPRE reseta o botão, mesmo em erro
+      _resetSubmitBtn(submitBtn);
+    }
   };
 
   renderProducts();
@@ -918,9 +922,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('#nav-drawer a').forEach(link => link.addEventListener('click', closeNav));
   window.addEventListener('resize', () => { if (window.innerWidth > 900) closeNav(); });
 
-  // Mostra dados do localStorage imediatamente (sem piscar)
   renderCatalog();
-
-  // Sincroniza com Firebase (aguarda resposta real do servidor)
   await loadProducts();
 });
