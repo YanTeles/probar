@@ -1,0 +1,7 @@
+{
+  "name": "colmeia-php-build",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node build-dist-php.js"
+  }
+}

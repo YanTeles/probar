@@ -1,11 +1,11 @@
 // =====================================================
 // API / HOSTINGER
 // =====================================================
-const API_URL = '/api.php'; // PHP Hostinger
+const API_URL = '/api.php?action='; // PHP Hostinger com ?action=products
 
 async function loadProductsFromAPI() {
   try {
-    const res = await fetch(`${API_URL}/api/products`);
+    const res = await fetch(`/api.php`);
     if (!res.ok) throw new Error('Erro ao carregar produtos');
     const data = await res.json();
 

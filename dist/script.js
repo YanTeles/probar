@@ -1,11 +1,11 @@
 // =====================================================
 // API / HOSTINGER
 // =====================================================
-const API_URL = ''; // mesmo origin — server.js serve os arquivos estáticos
+const API_URL = '/api.php?action='; // PHP Hostinger com ?action=products
 
 async function loadProductsFromAPI() {
   try {
-    const res = await fetch(`${API_URL}/api/products`);
+    const res = await fetch(`/api.php`);
     if (!res.ok) throw new Error('Erro ao carregar produtos');
     const data = await res.json();
 
@@ -34,14 +34,17 @@ async function loadProductsFromAPI() {
 
 async function saveProductToAPI(product) {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     const res = await fetch(`${API_URL}/api/products`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(product)
+      body: JSON.stringify(product),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     if (!res.ok) throw new Error('Erro ao salvar produto');
     console.log('[API] Produto salvo:', product.name);
-    await loadProductsFromAPI();
   } catch (err) {
     console.warn('[API] Erro ao salvar produto:', err);
     throw err;
@@ -50,10 +53,12 @@ async function saveProductToAPI(product) {
 
 async function deleteProductFromAPI(id) {
   try {
-    const res = await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const res = await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE', signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!res.ok) throw new Error('Erro ao excluir produto');
     console.log('[API] Produto excluído:', id);
-    await loadProductsFromAPI();
   } catch (err) {
     console.warn('[API] Erro ao excluir produto:', err);
   }
