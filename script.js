@@ -1,7 +1,7 @@
 // =====================================================
 // API / HOSTINGER
 // =====================================================
-const API_URL = ''; // mesmo origin — server.js serve os arquivos estáticos
+const API_URL = '/api.php'; // PHP Hostinger
 
 async function loadProductsFromAPI() {
   try {
