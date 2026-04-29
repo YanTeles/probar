@@ -9,7 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20260423" />
+  <link rel="stylesheet" href="style.css" />
+
   <style>
     /* Anti-FOUC: esconde o site imediatamente antes do CSS/JS carregar */
     #main-site { display: none; }
@@ -199,7 +200,7 @@
       <div class="search-container">
         <div class="search-box">
           <span class="search-icon">🔍</span>
-          <input type="text" id="product-search" placeholder="Buscar produtos..." oninput="handleSearch(this.value)" />
+          <input type="text" id="product-search" placeholder="Buscar produtos..." />
         </div>
       </div>
 
@@ -227,7 +228,7 @@
 
       <div class="load-more-container">
         <button class="load-more-btn" id="load-more-btn" onclick="loadMoreProducts()" style="display:none;">
-          Carregar Mais
+Veja Mais
         </button>
       </div>
     </div>
@@ -402,7 +403,8 @@
     🛒 <span class="cart-fab-count" id="cart-fab-count">0</span>
   </button>
 
-<script src="script.js?v=20260423"></script>
+<script src="script.js"></script>
+
 </body>
 </html>
 

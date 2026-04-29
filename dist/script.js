@@ -1,9 +1,8 @@
 // =====================================================
-// API / HOSTINGER
-// =====================================================
-const API_URL = '/api.php?action='; // PHP Hostinger com ?action=products
+    // API / HOSTINGER
+    // =====================================================
 
-async function loadProductsFromAPI() {
+    async function loadProductsFromAPI() {
   try {
     const res = await fetch(`/api.php`);
     if (!res.ok) throw new Error('Erro ao carregar produtos');
@@ -36,7 +35,7 @@ async function saveProductToAPI(product) {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(`${API_URL}/api/products`, {
+    const res = await fetch('/api.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(product),
@@ -55,7 +54,7 @@ async function deleteProductFromAPI(id) {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE', signal: controller.signal });
+    const res = await fetch(`/api.php?id=${id}`, { method: 'DELETE', signal: controller.signal });
     clearTimeout(timeoutId);
     if (!res.ok) throw new Error('Erro ao excluir produto');
     console.log('[API] Produto excluído:', id);
@@ -73,9 +72,23 @@ async function loadProducts() {
 // =====================================================
 function _saveLocal() {
   try {
-    localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
+    const compressed = adminProducts.map(p => ({
+      i: p.id,
+      n: p.name,
+      p: p.price,
+      c: p.category,
+      g: p.img?.startsWith('data:') ? '' : p.img,
+      s: (p.imgs || []).filter(url => !url?.startsWith('data:')).slice(0, 3),
+      d: p.desc
+    }));
+    // ← Apaga a chave ANTES de salvar para evitar QuotaExceeded
+    localStorage.removeItem('adminProducts');
+    localStorage.setItem('adminProducts', JSON.stringify(compressed));
   } catch (e) {
     console.warn('[localStorage] Falha ao salvar:', e);
+    if (e.name === 'QuotaExceededError') {
+      try { localStorage.clear(); } catch (_) {}
+    }
   }
 }
 
@@ -103,11 +116,20 @@ const CATEGORIES = [
 // =====================================================
 // ESTADO GLOBAL
 // =====================================================
-let adminProducts   = _loadLocal();
+let adminProducts = _loadLocal().map(p => ({
+  id: p.i,
+  name: p.n,
+  price: parseFloat(p.p) || 0,
+  category: p.c || '',
+  img: p.g || '',
+  imgs: Array.isArray(p.s) ? p.s : [],
+  desc: p.d || ''
+}));
 let catalogCategory = 'all';
 let adminLoggedIn   = localStorage.getItem('adminLoggedIn') === 'true';
 
 let cartItems = [];
+let showAllProducts = false;
 try {
   const raw = localStorage.getItem('cartItems');
   if (raw) { const p = JSON.parse(raw); if (Array.isArray(p)) cartItems = p; }
@@ -416,45 +438,82 @@ function getFilteredCatalogProducts() {
 
 function filterProducts(tag, btnEl) {
   catalogCategory = tag || 'all';
+  showAllProducts = false; // Reset Veja Mais ao filtrar
   document.querySelectorAll('.catalog-filters .filter-btn').forEach(b => b.classList.remove('active'));
   if (btnEl?.classList) btnEl.classList.add('active');
   renderCatalog();
 }
 
-function handleSearch()     { renderCatalog(); }
-function loadMoreProducts() {}
+function handleSearch() { 
+  showAllProducts = false; // Reset Veja Mais ao buscar
+  renderCatalog(); 
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Add event listener to search input
+  const searchInput = document.getElementById('product-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      handleSearch();
+    });
+  }
+  
+  // Event delegation for load more (survives re-renders)
+  document.addEventListener('click', function(e) {
+    if (e.target.id === 'load-more-btn') {
+      loadMoreProducts();
+    }
+  });
+
+});
+function loadMoreProducts() {
+  showAllProducts = true;
+  renderCatalog();
+}
 
 // =====================================================
 // CATÁLOGO — RENDER
 // =====================================================
 function renderCatalog(products) {
   const grid = document.getElementById('catalog-grid');
-  if (!grid) return;
-  const list = products === undefined ? getFilteredCatalogProducts() : products;
+  const loadMoreContainer = document.querySelector('.load-more-container');
+  if (!grid || !loadMoreContainer) return;
+
+  let list = products === undefined ? getFilteredCatalogProducts() : products;
+  
+  const maxInitial = 999; // Show all products initially
+  const hasMore = !showAllProducts && list.length > maxInitial;
+  if (hasMore) {
+    list = list.slice(0, maxInitial);
+  }
+
   if (list.length === 0) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#888;">Nenhum produto encontrado.</div>';
-    return;
+  } else {
+    grid.innerHTML = list.map(p => {
+      return `
+        <div class="product-card" onclick="toggleProduct(${p.id})">
+          <div class="product-img-wrap">
+            <img class="product-img"
+              src="${escapeHtml(p.img)}"
+              alt="${escapeHtml(p.name)}"
+              onerror="this.src='assets/produtos/tabacaria.jpeg'; this.alt='Produto indisponível'">
+          </div>
+          <div class="product-body">
+            <div class="product-cat">${escapeHtml(p.category)}</div>
+            <div class="product-name">${escapeHtml(p.name)}</div>
+            <div class="product-footer">
+              <div class="product-price">R$ ${(parseFloat(p.price) || 0).toFixed(2).replace('.', ',')}</div>
+              <button type="button" class="add-btn"
+                onclick="event.stopPropagation(); addToCartById(${p.id})">+</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+    animateCards();
   }
-  grid.innerHTML = list.map(p => `
-    <div class="product-card" onclick="toggleProduct(${p.id})">
-      <div class="product-img-wrap">
-        <img class="product-img"
-          src="${escapeHtml(p.img)}"
-          alt="${escapeHtml(p.name)}"
-          onerror="this.src='https://via.placeholder.com/300x300/333/fff?text=Produto'">
-      </div>
-      <div class="product-body">
-        <div class="product-cat">${escapeHtml(p.category)}</div>
-        <div class="product-name">${escapeHtml(p.name)}</div>
-        <div class="product-footer">
-          <div class="product-price">R$ ${p.price.toFixed(2).replace('.', ',')}</div>
-          <button type="button" class="add-btn"
-            onclick="event.stopPropagation(); addToCartById(${p.id})">+</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-  animateCards();
+
+  loadMoreContainer.style.display = hasMore ? 'block' : 'none';
 }
 
 function addToCartById(id) {
@@ -501,7 +560,7 @@ function openProductModal(product) {
       <div class="modal-body" style="padding-top:0.5rem;">
         <div style="position:relative;">
           <img id="product-modal-image"
-            src="${escapeHtml(gallery[0])}"
+            src="${escapeHtml(gallery[0])}" onerror="this.src='assets/produtos/tabacaria.jpeg'"
             alt="${escapeHtml(product.name)}"
             style="width:100%;aspect-ratio:1;object-fit:contain;border-radius:14px;border:1px solid #5b7fa622;background:#f5f5f5;" />
           ${multi ? `
@@ -517,7 +576,7 @@ function openProductModal(product) {
         <p style="margin-top:1rem;line-height:1.7;color:var(--text-muted);font-size:1rem;">${safeDesc}</p>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.2rem;gap:0.8rem;">
           <strong style="font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--gold);">
-            R$ ${product.price.toFixed(2).replace('.', ',')}
+            R$ ${(parseFloat(product.price) || 0).toFixed(2).replace('.', ',')}
           </strong>
           <button type="button" class="btn-primary" onclick="addToCartById(${product.id})">
             Adicionar ao carrinho
@@ -1016,6 +1075,17 @@ function logoutAdmin() { closeAdminModal(); }
 // =====================================================
 // INICIALIZAÇÃO
 // =====================================================
+// Globals for onclick attributes
+window.confirmAge = confirmAge;
+window.resetAgeGate = resetAgeGate;
+window.loadMoreProducts = loadMoreProducts;
+window.filterProducts = filterProducts;
+window.toggleAdminModal = toggleAdminModal;
+window.toggleCart = toggleCart;
+window.toggleProduct = toggleProduct;
+window.addToCartById = addToCartById;
+window.changeCartQuantity = changeCartQuantity;
+
 document.addEventListener('DOMContentLoaded', async () => {
   initAgeGate();
 
@@ -1027,6 +1097,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.querySelectorAll('#nav-drawer a').forEach(link => link.addEventListener('click', closeNav));
   window.addEventListener('resize', () => { if (window.innerWidth > 900) closeNav(); });
+
+  // Event delegation for age gate buttons (backup)
+  document.addEventListener('click', function(e) {
+    if (e.target.matches('.btn-age-yes')) confirmAge(true);
+    if (e.target.matches('.btn-age-no')) confirmAge(false);
+    if (e.target.matches('.btn-age-back')) resetAgeGate();
+  });
 
   renderCatalog();
   await loadProducts();
